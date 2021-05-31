@@ -9,9 +9,8 @@ const UserSchema = mongoose.Schema({
         type: String, 
         required: true
     },
-    birthday: {
-        type: Date, 
-        required: true
+    username: {
+        type: String
     },
     email: {
         type: String,
@@ -21,10 +20,17 @@ const UserSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    isAdmin : {
+        type : Boolean, 
+        default : false
+    },
+    code: {
+        type: String
+    },
     registrationDate: {
         type: Date,
         default: Date.now()
-    }
+    },
 });
 
 module.exports = mongoose.model('Users', UserSchema);

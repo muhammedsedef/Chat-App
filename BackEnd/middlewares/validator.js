@@ -15,26 +15,21 @@ const userValidationRules = () => {
           })
           .catch()
       }),
+      
+    check('username')
+    .custom((value) => {
+      return User.findOne({ username: value})
+      .then((user) => {
+        if(user) {return Promise.reject('Username already exists');}
+      })
+      .catch()
+    }),
 
     check('password', 'The password must be 6+ chars long and contain a number')
       //.isStrongPassword().withMessage('Please enter a strong password!')
       //.not().isIn(commonPassword).withMessage('Do not use a common word as the password')
       .isLength({ min: 6 }).withMessage('The password must be 6+ chars'),
     //.matches(/\d/).withMessage('Your password has to include a number at least'),
-    check('firstName')
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage('First name can not be empty'),
-
-    check('lastName')
-      .trim()
-      .not()
-      .isEmpty()
-      .withMessage('Last name can not be empty'),
-
-    check('birthday').isDate().withMessage('Birthday is not valid date')
-
   ]
 };
 
