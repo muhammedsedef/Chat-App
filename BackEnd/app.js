@@ -4,6 +4,8 @@ const app = express();
 require('dotenv').config();
 
 const userRoute = require('./routes/user.route');
+const conversationRoute = require('./routes/conversation.route');
+const messageRoute = require('./routes/message.route');
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -28,8 +30,10 @@ app.get('/api', (req, res) => {
   res.send('We are on API Home');
 });
 
-// Route settings
+// API Routes
 app.use('/api/users', userRoute);
+app.use('/api/conversations', conversationRoute);
+app.use('/api/messages', messageRoute);
 
 mongoose.Promise = Promise;
 
@@ -40,6 +44,7 @@ var mongooseOptions = {
 };
 const port = process.env.PORT || 3000;
 
+//DB Config
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
   .then(() => {
