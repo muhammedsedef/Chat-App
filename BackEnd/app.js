@@ -1,24 +1,18 @@
 const express = require('express');
 const socket = require('socket.io');
 const app = express();
+const server = require('http').createServer(app);
 const path = require('path');
-const port = process.env.PORT || 3000;
 
 const mongoose = require("mongoose");
 require('dotenv').config();
 
 
-//BACKEND SERVER
-const server = app.listen(port, () => {
-
-
 //Backend Server Port Config
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
-
   console.log(`Server running on port ${port}`)
 })
-
 
 //SOCKET Implementation
 
@@ -70,8 +64,6 @@ io.on("connection", (socket) => {
 const userRoute = require('./routes/user.route');
 const conversationRoute = require('./routes/conversation.route');
 const messageRoute = require('./routes/message.route');
-const { remove } = require('./models/User.model');
-
 
 app.use(express.json());
 
