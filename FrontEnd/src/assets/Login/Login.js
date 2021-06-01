@@ -1,10 +1,42 @@
-import React from 'react'
+import React, {useState, useContext} from 'react'
 import styles from './login.module.css'
 import LoginImage from '../../images/login-image.svg'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
+import axios from 'axios'
+import { AuthContext } from '../../context/AuthContext'
 
 
 const Login = () => {
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
+    const [message, setMessage] = useState("")
+    const history = useHistory()
+    const [user, setUser] = useContext(AuthContext)
+
+    const logIn = async () => {
+        if( !email && !password ) return
+        try {
+            const res = await axios.post("http://localhost:8000/api/users/login", {
+            email,
+            password
+        })
+        console.log(res)
+        if (res.status === 200) {
+            setUser(res.data.data._id)
+            setError("")
+            localStorage.setItem('token', res.data.token)
+            setMessage("You have logged in successfully.")
+            setTimeout(() => {
+                //history.push('/chat')
+            }, 500);
+        }
+    }
+        catch (e){
+            setError(e.response.data.message)
+        }
+    }
+
     return (
         <div className={styles.login}>
            <div className={styles.left}>
@@ -12,11 +44,23 @@ const Login = () => {
                     <h1>Login Chat</h1>
                     <p>Login to start chat with your coworkers</p>
                     <div className={styles.inputs}>
-                        <label for="username">Username</label>
-                        <input name="username" type="text"/> 
+                        <label for="email">E-mail address</label>
+                        <input
+                            onChange={(e)=>setEmail(e.target.value)}
+                            value={email}
+                            name="email" 
+                            type="email"
+                        /> 
                         <label for="password">Password</label> 
-                        <input name="password" type="password"/> 
-                        <button>Log in</button>
+                        <input
+                            onChange={(e)=>setPassword(e.target.value)}
+                            email={password}
+                            name="password"
+                            type="password"
+                        /> 
+                        <button onClick={logIn} >Log in</button>
+                        <p className={error ? styles.error : styles.hide}>{error}</p>
+                        <p className={message ? styles.message : styles.hide}>{message}</p>
                     </div>
                 </div>
                 <p className={styles.bottom}>Don't have an account? <Link to="/register">Sign Up</Link></p>

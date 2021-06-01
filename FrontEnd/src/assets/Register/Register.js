@@ -1,9 +1,44 @@
-import React from 'react'
+import React, { useState, useContext } from 'react'
 import styles from '../Login/login.module.css'
 import LoginImage from '../../images/login-image.svg'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
+import axios from 'axios'
 
 const Register = () => {
+    const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [code, setCode] = useState("")
+    const [message, setMessage] = useState("")
+    const [errors, setErrors] = useState([])
+    const history = useHistory();
+
+    const setError = (e) => {
+        setErrors(e)
+    }
+
+    const signUp = async () => {
+        try{
+            const res = await axios.post("http://localhost:8000/api/users/signup", {
+                username,
+                email,
+                password,
+                code
+            })
+            if (res.data.status === 201) {
+                setError([])
+                setMessage("You have registered successfully!")
+                setTimeout(() => {
+                    history.push('/')
+                }, 500);
+            }
+        }catch (e) {
+            console.log(e.response)
+            if (e.response.data.errors) setErrors(e.response.data.errors)
+            else if (e.response.data.message) setErrors(e.response.data.message)
+        }
+     }
+
     return (
         <div className={styles.login}>
            <div className={styles.left}>
@@ -12,12 +47,43 @@ const Register = () => {
                     <p>You may join now if you are already our employee</p>
                     <div className={styles.inputs}>
                         <label for="username">Username</label>
-                        <input name="username" type="text"/> 
+                        <input 
+                            value={username} 
+                            name="username" 
+                            type="text"
+                            onChange={(e)=>setUsername(e.target.value)}
+                        />
+                        <label for="email">E-mail addres</label>
+                        <input 
+                            value={email} 
+                            name="email" 
+                            type="email"
+                            onChange={(e)=>setEmail(e.target.value)}
+                        /> 
                         <label for="password">Password</label> 
-                        <input name="password" type="password"/> 
+                        <input 
+                            value={password} 
+                            name="password" 
+                            type="password"
+                            onChange={(e)=>setPassword(e.target.value)}
+                        />
                         <label for="code">Code</label> 
-                        <input name="code" type="text"/> 
-                        <button>Sign up</button>
+                        <input 
+                            value={code} 
+                            name="code" 
+                            type="text"
+                            onChange={(e)=>setCode(e.target.value)}
+                        /> 
+                        <button onClick={signUp} >Sign up</button>
+                        <p className={message ? styles.message : styles.hide}>{message} <br /> Redirecting to Log In </p>
+                        <div className={errors.length ? styles.error : styles.hide}>
+                            {typeof errors != 'string' ? errors?.map(e => (
+                            <p>{e.msg}</p>
+                                ))
+                            :
+                            <p>{errors}</p>
+                            }
+                        </div>
                     </div>
                 </div>
                 <p className={styles.bottom}>Already have an account? <Link to="/login">Log In</Link></p>

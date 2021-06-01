@@ -19,7 +19,7 @@ import {
 function App() {
   
   //Remove after auth function.
-  const auth = true
+  const auth = false
 
   return (
     <div className="App">

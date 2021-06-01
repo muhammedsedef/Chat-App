@@ -91,7 +91,7 @@ exports.login = async (req, res) => {
 
 exports.getUsers = async (req,res) => {
     try {
-        let users = await User.find({}, {password:0, code:0})
+        let users = await User.find({}, {password:0})
         res.status(200).json({ 
             status: 200,
             message : 'Success', 

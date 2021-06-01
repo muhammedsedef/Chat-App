@@ -3,13 +3,29 @@ const app = express();
 const http = require('http')
 const server = http.createServer(app)
 const io = require("socket.io")(server)
-
 const mongoose = require("mongoose");
 require('dotenv').config();
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET')
+    return res.status(200).json({});
+  };
+  next();
+});
+
 
 //Backend Server Port Config
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`)
 });
@@ -17,7 +33,7 @@ server.listen(port, () => {
 
 io.on("connection", (socket) => {
   console.log("connected");
-
+  
   socket.on('disconnect', () => {
     console.log('user disconnect')
   })
@@ -27,7 +43,6 @@ io.on("connection", (socket) => {
 const userRoute = require('./routes/user.route');
 const conversationRoute = require('./routes/conversation.route');
 const messageRoute = require('./routes/message.route');
-
 
 app.use(express.json());
 
@@ -55,13 +70,13 @@ var mongooseOptions = {
 
 //DB Config
 mongoose
-  .connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
-  .then(() => {
-    console.log("DataBase Connection Successful!");
-  })
-  .catch(err => {
-    console.log("DataBase Connection Failed!" + err);
-  });
+.connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
+.then(() => {
+  console.log("DataBase Connection Successful!");
+})
+.catch(err => {
+  console.log("DataBase Connection Failed!" + err);
+});
 
 
 //SOCKET 
