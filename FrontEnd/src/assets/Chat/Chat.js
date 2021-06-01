@@ -13,10 +13,11 @@ const Chat = () => {
     const [messages, setMessages] = useState([]) //Messages in chat screen
     const [input, setInput] = useState("") //Message input
     const [users, setUsers] = useState() //Users on the left frame
-    const [chats, setChats] = useState()
+    const [chats, setChats] = useState([])
     const [user, setUser] = useContext(AuthContext)
     const [currentChat, setCurrentChat] = useState() //Current chat indicator
     const [showChat, setShowChat] = useState(false) //For responsiveness
+    const [chatCount, setChatCount] = useState(0)
     const scrollRef = useRef() //To scroll chat screen after sending message
     const myChats = []
 
@@ -43,65 +44,36 @@ const Chat = () => {
             }
         }
 
+        getUsers()
+    },[])
+
+    useEffect(()=>{
         const getConversations = async () => {
             try {
-                const res = await axios(`http://localhost:8000/api/conversations/getConversation/${JSON.parse(localStorage.getItem('user'))}`)
-                setChats(res.data)
+                const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${JSON.parse(localStorage.getItem('user'))}`)
+                console.log(res.data.data)
+                setChats(res.data.data)
             }
             catch (e) {
                 console.log(e.response)
             }
         }
         getConversations()
-        getUsers()
-    },[])
+    },[chatCount])
 
+    useEffect(()=>{
+        console.log(messages)
+    }, [messages])
+    
     const getMessages = async (id) => {
         try {
             const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
-            console.log(res)
-            setMessages(res.data)
+            console.log(res.data.data)
+            setMessages(res.data.data)
         } catch (e) {
             console.log(e.response)
         }
     }
-
-    // const createConversation = async (id) => {
-    //     try {
-    //         const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
-    //         senderId: user,
-    //         receiverId: id
-    //     })
-    //     console.log(res)
-    //     } catch (e) {
-    //         console.log(e.response)
-    //     }
-    // }
-
-
-    // const getChatWithUser = (u) => {
-    //     let hasPreviousChat = false
-    //     myChats?.forEach(c => {
-    //         console.log(c)
-    //         if (c.members.includes(u._id)) {
-    //             hasPreviousChat = true;
-    //         }
-    //     })
-    //     if (hasPreviousChat) {
-    //         let index = chats.findIndex(e => {
-    //             return e.members.includes(u._id)
-    //         })
-    //         console.log(index)
-    //         let id = chats[index]._id
-    //         console.log(id)
-    //         getMessages(id)
-    //     }
-    //     else {
-    //         createConversation(u._id)
-    //     }
-    // }
-
-
 
     const time = new Date();
     function addZero(i) {
@@ -112,31 +84,64 @@ const Chat = () => {
     }   
     const hm = `${addZero(time.getHours())}:${addZero(time.getMinutes())}`
 
-    const sendMessage = () => {
+    const sendMessage = async () => {
         if(!input) return
-        id++
-        setMessages(prevMessages => [...prevMessages, {
-            id,
-            text: input,
-            senderID: 1,
-            recieverID: 2,
-            time: hm
-        }])
-
+        try {
+            const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
+            conversationId: currentChat,
+            senderId: user,
+            text: input
+        })
+        console.log(res)
+        setMessages(prevMessages => [...prevMessages, res.data.data])
+        }catch (e) {
+            console.log(e.response)
+        }
         setInput("")
     }
 
-    const sendMessageKeyPress = (e) => {
+    const createConversation = async (id) => {
+        let flag = false
+        chats.forEach(c => {
+            console.log(c)
+            c.members.forEach( m => {
+                console.log(m)
+                if(m._id === id) {
+                    flag = true
+                }
+            })
+        })
+        if (flag === false) {
+        try {
+            const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
+            senderId: user,
+            receiverId: id
+        })
+        setChats(prevChat => [...prevChat, res.data.data])
+        setChatCount(prev => prev + 1)
+        console.log(res)
+        } catch (e) {
+            console.log(e.response)
+        }
+    }
+    }
+
+    const sendMessageKeyPress = async (e) => {
         if (e.key === 'Enter' && input) {
-            id++
+            try {
+                const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
+                conversationId: currentChat,
+                senderId: user,
+                text: input
+            })
             setMessages(prevMessages => [...prevMessages, {
-                id,
-                text: input,
-                senderID: 1,
-                recieverID: 2,
-                time: hm
+                conversationId: currentChat,
+                senderId: user,
+                text: input
             }])
-    
+            }catch (e) {
+                console.log(e.response)
+            }
             setInput("")
         }
     }
@@ -159,7 +164,24 @@ const Chat = () => {
                         <span>Chats</span>
                     </div>
                     <div className={styles.users}>
-                        <Card></Card>
+                        {
+                            chats.length && chats.map(c => (
+                                <div onClick={ () => {
+                                    getMessages(c._id)
+                                    setCurrentChat(c)
+                                    //getChatWithUser(u)
+                                    if (window.innerWidth <= 700) {
+                                        setShowChat(!showChat)
+                                    }
+                                }}>
+                                <Card
+                                    conversation = {c}
+                                    current = {currentChat === c ? true : false}
+                                >
+                                </Card>
+                                </div>
+                            ))
+                        }
                     </div>           
                 </div>
                 <div className={styles.onlines}>
@@ -173,7 +195,7 @@ const Chat = () => {
                                 
                                 <div onClick={ () => {
                                         console.log(typeof u._id)
-                                        setCurrentChat(u)
+                                        createConversation(u._id)
                                         //getChatWithUser(u)
                                         if (window.innerWidth <= 700) {
                                             setShowChat(!showChat)
@@ -237,19 +259,17 @@ const Chat = () => {
                     {
                     currentChat ?
                     <ChatHeader
-                        name = {`${currentChat?.firstName} ${currentChat?.lastName}`}
+                        conversation = {currentChat}
                     />
                     :
                     null
                     }
                 </div>
                 <div className={styles.messages}>
-                    {currentChat ? messages?.map((m)=> ( 
+                    {currentChat ? messages.length > 0 && messages?.map((m)=> ( 
                         <div ref={scrollRef}>
                              <Message
-                                type={m.senderID === userID ? "sent" : "recieved"}
-                                time={m.time}
-                                name={m.name}
+                                type={m.senderId._id ? m.senderId._id === user ? "sent" : "recieved" : m.senderId === user ? "sent" : "recieved"}
                             >
                                 {m.text}
                             </Message>

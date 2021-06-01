@@ -1,10 +1,26 @@
-import React from 'react'
+import React, {useContext} from 'react'
 import styles from './chatheader.module.css'
 import Photo from '../../images/pp.svg'
 import ConversationIcon from '../../images/chat.svg'
+import { AuthContext } from '../../context/AuthContext'
 
 
-const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2} ) => {
+const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, conversation} ) => {
+    const [user,setUser] = useContext(AuthContext)
+    let friend = conversation?.members.find(m => m._id !== user)
+
+    if (conversation) {
+        return (
+            <div className = {styles.chatHeader}>
+                <img src={photo}/>
+                <span>{friend.firstName} {friend.lastName}</span>
+            </div>
+        )
+    }
+
+
+
+
     if (member1 && member2) {
         return (
             <div className = {styles.chatHeader}>
