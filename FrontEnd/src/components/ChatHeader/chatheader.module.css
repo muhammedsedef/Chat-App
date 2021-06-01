@@ -1,0 +1,30 @@
+
+.chatHeader {
+    display: flex;
+    align-items: center;
+    padding: .5rem;
+    border-bottom: 1px solid #D6E8E3;
+}
+
+.chatHeader span {
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-left: 1.5rem;
+}
+
+.chatHeader img {
+    margin-left: 1rem;
+    padding: 1rem 1rem;
+    border-radius: 25px;
+    background-color: #D6E8E3;
+}
+
+
+@media screen and (max-width: 680px) {
+    .chatHeader {
+        justify-content: flex-end;
+    }
+    .chatHeader img {
+        order: 2;
+    }   
+}
