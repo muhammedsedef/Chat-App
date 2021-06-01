@@ -7,21 +7,10 @@ const path = require('path');
 const mongoose = require("mongoose");
 require('dotenv').config();
 
-<<<<<<< HEAD
-=======
-
-//BACKEND SERVER
-const server = app.listen(port, () => {
-
->>>>>>> 8d6698380191bcededf24a20af4e61e80bcb3e71
 
 //Backend Server Port Config
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
-<<<<<<< HEAD
-=======
-
->>>>>>> 8d6698380191bcededf24a20af4e61e80bcb3e71
   console.log(`Server running on port ${port}`)
 })
 
