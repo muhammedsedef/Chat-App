@@ -8,6 +8,28 @@ const mongoose = require("mongoose");
 require('dotenv').config();
 
 
+
+//Backend Server Port Config
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`)
+});
+
+
+io.on("connection", (socket) => {
+  console.log("connected");
+
+  socket.on('disconnect', () => {
+    console.log('user disconnect')
+  })
+});
+
+
+const userRoute = require('./routes/user.route');
+const conversationRoute = require('./routes/conversation.route');
+const messageRoute = require('./routes/message.route');
+
+
 //Backend Server Port Config
 const port = process.env.PORT || 3000;
 server.listen(port, () => {
