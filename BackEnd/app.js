@@ -1,31 +1,45 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const app = express();
+const http = require('http')
+const server = http.createServer(app)
+const io = require("socket.io")(server)
+
+const mongoose = require("mongoose");
 require('dotenv').config();
+
+<<<<<<< HEAD
+=======
+const userRoute = require('./routes/user.route');
+const conversationRoute = require('./routes/conversation.route');
+const messageRoute = require('./routes/message.route');
+>>>>>>> master
+
+//Backend Server Port Config
+const port = process.env.PORT || 3000;
+server.listen(port, () => {
+  console.log(`Server running on port ${port}`)
+});
+
+
+io.on("connection", (socket) => {
+  console.log("connected");
+
+  socket.on('disconnect', () => {
+    console.log('user disconnect')
+  })
+});
+
 
 const userRoute = require('./routes/user.route');
 const conversationRoute = require('./routes/conversation.route');
 const messageRoute = require('./routes/message.route');
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
-  );
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET')
-    return res.status(200).json({});
-  };
-  next();
-});
 
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('hello there');
+});
 app.get('/api', (req, res) => {
   res.send('We are on API Home');
 });
@@ -35,6 +49,8 @@ app.use('/api/users', userRoute);
 app.use('/api/conversations', conversationRoute);
 app.use('/api/messages', messageRoute);
 
+
+//DB Config
 mongoose.Promise = Promise;
 
 var mongooseOptions = {
@@ -42,19 +58,19 @@ var mongooseOptions = {
   useCreateIndex: true,
   useUnifiedTopology: true
 };
-const port = process.env.PORT || 3000;
 
 //DB Config
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
   .then(() => {
     console.log("DataBase Connection Successful!");
-    app.listen(port);
-    console.log(`Server running on port ${port}`)
   })
   .catch(err => {
     console.log("DataBase Connection Failed!" + err);
   });
+
+
+//SOCKET 
 
 
 module.exports = app;

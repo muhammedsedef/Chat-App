@@ -10,6 +10,8 @@ const { userValidationRules, validate, resetPasswordValidationRules } = require(
 router.post('/signup', userValidationRules(), validate, UserCtrl.signup);
 //LOGIN
 router.post('/login', UserCtrl.login);
+//GET ALL USERS
+router.get('/getUsers', UserCtrl.getUsers);
 
 
 
