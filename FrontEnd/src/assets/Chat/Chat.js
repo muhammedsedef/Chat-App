@@ -1,25 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useContext } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './chat.module.css'
 import Message from '../../components/Message/Message'
 import Card from '../../components/Card/Card'
 import GroupCard from '../../components/GroupCard/GroupCard'
 import ChatHeader from '../../components/ChatHeader/ChatHeader'
-import { data } from '../../dummy/users'
-import { data3 } from '../../dummy/conversations'
 import Send from '../../images/send.svg'
+import axios from 'axios'
+import { AuthContext } from '../../context/AuthContext'
 
 const Chat = () => {
     const [messages, setMessages] = useState([]) //Messages in chat screen
     const [input, setInput] = useState("") //Message input
     const [users, setUsers] = useState() //Users on the left frame
     const [chats, setChats] = useState()
+    const [user, setUser] = useContext(AuthContext)
     const [currentChat, setCurrentChat] = useState() //Current chat indicator
     const [showChat, setShowChat] = useState(false) //For responsiveness
     const scrollRef = useRef() //To scroll chat screen after sending message
+    const myChats = []
 
     //Remove after auth
-    const userType = "admin"
+    const userType = "user"
     const userID = 1
     let id = 1
     //
@@ -30,10 +32,75 @@ const Chat = () => {
     },[messages, currentChat])
 
     useEffect(()=>{
-        setMessages();
-        //Dummy data
-        setUsers(data.users);
+        console.log(user)
+        const getUsers = async () => {
+            try {
+                const res = await axios.get("http://localhost:8000/api/users/getUsers")
+                console.log(res)
+                setUsers(res.data.data)
+            } catch (e) {
+                console.log(e.response)
+            }
+        }
+
+        const getConversations = async () => {
+            try {
+                const res = await axios(`http://localhost:8000/api/conversations/getConversation/${JSON.parse(localStorage.getItem('user'))}`)
+                setChats(res.data)
+            }
+            catch (e) {
+                console.log(e.response)
+            }
+        }
+        getConversations()
+        getUsers()
     },[])
+
+    const getMessages = async (id) => {
+        try {
+            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
+            console.log(res)
+            setMessages(res.data)
+        } catch (e) {
+            console.log(e.response)
+        }
+    }
+
+    // const createConversation = async (id) => {
+    //     try {
+    //         const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
+    //         senderId: user,
+    //         receiverId: id
+    //     })
+    //     console.log(res)
+    //     } catch (e) {
+    //         console.log(e.response)
+    //     }
+    // }
+
+
+    // const getChatWithUser = (u) => {
+    //     let hasPreviousChat = false
+    //     myChats?.forEach(c => {
+    //         console.log(c)
+    //         if (c.members.includes(u._id)) {
+    //             hasPreviousChat = true;
+    //         }
+    //     })
+    //     if (hasPreviousChat) {
+    //         let index = chats.findIndex(e => {
+    //             return e.members.includes(u._id)
+    //         })
+    //         console.log(index)
+    //         let id = chats[index]._id
+    //         console.log(id)
+    //         getMessages(id)
+    //     }
+    //     else {
+    //         createConversation(u._id)
+    //     }
+    // }
+
 
 
     const time = new Date();
@@ -86,6 +153,15 @@ const Chat = () => {
                         <GroupCard></GroupCard>
                     </div>           
                 </div>
+                <div className={styles.conversations}>
+                    <div className={styles.header}>
+                        <div className={styles.indicator}></div>
+                        <span>Chats</span>
+                    </div>
+                    <div className={styles.users}>
+                        <Card></Card>
+                    </div>           
+                </div>
                 <div className={styles.onlines}>
                     <div className={styles.header}>
                         <div className={styles.indicator}></div>
@@ -94,21 +170,22 @@ const Chat = () => {
                     <div className={styles.users}>
                         {
                             users?.map(u => (
-                                u.status === 'Online' ?
+                                
                                 <div onClick={ () => {
+                                        console.log(typeof u._id)
                                         setCurrentChat(u)
+                                        //getChatWithUser(u)
                                         if (window.innerWidth <= 700) {
                                             setShowChat(!showChat)
                                         }
                                     }}>
                                     <Card
-                                    id = {u.id}
-                                    name = {u.name}
-                                    status = {u.status}
-                                    current = {currentChat === u ? true : false}
+                                        id = {u._id}
+                                        name = {`${u.firstName} ${u.lastName}`}
+                                        current = {currentChat === u ? true : false}
                                 />
                                 </div>
-                                : null
+                                
                             ))
                         }
                     </div>
@@ -160,7 +237,7 @@ const Chat = () => {
                     {
                     currentChat ?
                     <ChatHeader
-                        name = {currentChat?.name}
+                        name = {`${currentChat?.firstName} ${currentChat?.lastName}`}
                     />
                     :
                     null

@@ -1,8 +1,9 @@
-const express = require("express");
+const express = require('express');
+const socket = require('socket.io');
 const app = express();
-const http = require('http')
-const server = http.createServer(app)
-const io = require("socket.io")(server)
+const path = require('path');
+const port = process.env.PORT || 3000;
+
 const mongoose = require("mongoose");
 require('dotenv').config();
 
@@ -24,30 +25,74 @@ app.use((req, res, next) => {
 });
 
 
+//BACKEND SERVER
+const server = app.listen(port, () => {
+
+
 //Backend Server Port Config
 const port = process.env.PORT || 8000;
 server.listen(port, () => {
+
   console.log(`Server running on port ${port}`)
-});
+})
 
 
+//SOCKET Implementation
+
+let users = []
+
+//Taking all active user 
+const addUser = (userId, socketId) => {
+  !users.some(user => user.userId === userId) &&
+    users.push({ userId, socketId })
+}
+
+//To remove user who left the chat to users array
+const removeUser = (socketId) => {
+  users = users.filter(user => user.socketId !== socketId)
+}
+
+const getUser = (userId) => {
+  return users.find(user => user.userId === userId)
+}
+
+const io = socket(server)
+//When Connect Someone
 io.on("connection", (socket) => {
-  console.log("connected");
-  
+  console.log("a user connected");
+  //take userId and socketId from user
+  socket.on("addUser", userId => {
+    addUser(userId, socket.id)
+    io.emit("getUsers", users)
+  })
+
+  //Send and get message
+  socket.on("sendMessage", ({senderId, receiverId, text})=> {
+    const user = getUser(receiverId)
+    io.to(user.socketId).emit("getMessage", {
+      senderId, 
+      text
+    })
+  })
+
+
+  //When Disconnect someone
   socket.on('disconnect', () => {
     console.log('user disconnect')
+    removeUser(socket.id)
+    io.emit("getUsers", users)
   })
 });
-
 
 const userRoute = require('./routes/user.route');
 const conversationRoute = require('./routes/conversation.route');
 const messageRoute = require('./routes/message.route');
+const { remove } = require('./models/User.model');
 
 app.use(express.json());
 
 app.get('/', (req, res) => {
-  res.send('hello there');
+  res.sendFile(path.join(__dirname, '../FrontEnd', 'index.html'));
 });
 app.get('/api', (req, res) => {
   res.send('We are on API Home');
@@ -79,7 +124,4 @@ mongoose
 });
 
 
-//SOCKET 
-
-
-module.exports = app;
+module.exports = app;})
