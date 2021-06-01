@@ -17,7 +17,7 @@ exports.getConversation = async (req, res) => {
     try {
         const conversations = await Conversation.find({
             members: { $in: [req.params.userId] }
-        })
+        }).populate('members', 'firstName lastName')
         res.status(200).json({
             status: 200, 
             message: 'Success',
