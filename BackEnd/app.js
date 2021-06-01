@@ -7,6 +7,12 @@ const io = require("socket.io")(server)
 const mongoose = require("mongoose");
 require('dotenv').config();
 
+<<<<<<< HEAD
+=======
+const userRoute = require('./routes/user.route');
+const conversationRoute = require('./routes/conversation.route');
+const messageRoute = require('./routes/message.route');
+>>>>>>> master
 
 //Backend Server Port Config
 const port = process.env.PORT || 3000;
@@ -53,6 +59,7 @@ var mongooseOptions = {
   useUnifiedTopology: true
 };
 
+//DB Config
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
   .then(() => {
