@@ -29,7 +29,7 @@ exports.newMessage = async (req, res) => {
 
 exports.getMessages = async (req, res) => {
     try {
-        let messages = await Message.find({ conversationId: req.params.conversationId })
+        let messages = await Message.find({ conversationId: req.params.conversationId }).populate('senderId', 'firstName lastName' )
         
         //Decrypt for messages
         messages.map(message =>{
