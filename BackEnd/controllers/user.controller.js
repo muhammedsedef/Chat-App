@@ -101,3 +101,16 @@ exports.getUsers = async (req,res) => {
         res.status(500).json({ status: 500, message: error.message });
     }
 }
+
+exports.getUser = async (req,res) => {
+    try {
+        let user = await User.findById(req.params.id)
+        res.status(200).json({
+            status: 200,
+            message: 'Success',
+            data: user
+        })
+    } catch (error) {
+        res.status(500).json({ status: 500, message: error.message });
+    }
+}

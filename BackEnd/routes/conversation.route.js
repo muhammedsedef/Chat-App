@@ -10,5 +10,7 @@ router.post('/newConversation', ConversationCtrl.newConversation);
 //GET CONVERSATIONS
 router.get('/getConversation/:userId', ConversationCtrl.getConversation);
 
+router.get('/getAllConversations', ConversationCtrl.getAllConversations)
+
 
 module.exports = router;

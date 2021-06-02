@@ -15,10 +15,12 @@ import Logo from '../../images/logo.svg'
 import { io } from 'socket.io-client'
 
 
+
 const Chat = () => {
     const [messages, setMessages] = useState([]) //Messages in chat screen
     const [input, setInput] = useState("") //Message input
     const [users, setUsers] = useState() //Users on the left frame
+    const [onlineUsers, setOnlineUsers] = useState() //Users on the left frame
     const [chats, setChats] = useState([])
     const [user, setUser] = useContext(AuthContext)
     const [currentChat, setCurrentChat] = useState() //Current chat indicator
@@ -29,33 +31,35 @@ const Chat = () => {
     const [arrivalMessage, setArrivalMessage] = useState(null)
     const socket = useRef()
     const history = useHistory()
-
     //Remove after auth
-    const userType = user.isAdmin ? 'admin' : 'user'
-
+    const userType = user.isAdmin ? 'admin' : 'admin'
+    
     useEffect(() => {
-       socket.current = io("ws://localhost:8000")
-       socket.current.on("getMessage", data => {
-           setArrivalMessage({
-               sender: data.senderId,
-               text: data.text,
-               createdAt: new Date().toString()
-           })
-       })
+        socket.current = io("ws://localhost:8000")
     }, [])
-
-    useEffect(() => {
-        arrivalMessage && currentChat?.members.filter(m => m._id === arrivalMessage.sender).length > 0 &&
-        setMessages( prevMessages => [...prevMessages, arrivalMessage])
-        console.log(messages)
-    }, [arrivalMessage])
 
     useEffect( ()=>{
         socket.current.emit("addUser", user._id)
         socket.current.on("getUsers", users => {
-            console.log(users)
+            setOnlineUsers(users)
         })
     }, [user])
+    
+   useEffect(() => {
+    socket.current.on("getMessage", data => {
+        setArrivalMessage({
+            sender: data.senderId,
+            text: data.text,
+            createdAt: new Date().toString()
+        })
+    })
+   }, [])
+
+    useEffect(() => {
+        arrivalMessage && currentChat?.members.filter(m => m._id === arrivalMessage.sender).length > 0 &&
+        setMessages( prevMessages => [...prevMessages, arrivalMessage])
+    }, [arrivalMessage])
+
     
     useEffect(()=>{
         //Scroll to bottom
@@ -63,12 +67,10 @@ const Chat = () => {
     },[messages, currentChat, loading])
 
     useEffect(()=>{
-        console.log(user)
         //Get all users
         const getUsers = async () => {
             try {
                 const res = await axios.get("http://localhost:8000/api/users/getUsers")
-                console.log(res)
                 setUsers(res.data.data)
             } catch (e) {
                 console.log(e.response)
@@ -83,7 +85,6 @@ const Chat = () => {
         const getConversations = async () => {
             try {
                 const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${user._id}`)
-                console.log(res.data.data)
                 setChats(res.data.data)
             }
             catch (e) {
@@ -93,17 +94,24 @@ const Chat = () => {
         getConversations()
     },[chatCount, arrivalMessage])
 
+    const getSpecificUser = async (id) => {
+        try {
+            const res = axios.get(`http://localhost:8000/api/users/getUser/${id}`)
+            return res
+        } catch (error) {
+            console.log(error.response)
+        }
+    }
+
 
 
     const getMessages = async (id) => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            console.log(id)
             const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
-            console.log(res.data.data)
         } catch (e) {
             console.log(e.response)
             setLoading(false)
@@ -121,6 +129,7 @@ const Chat = () => {
         //Send a mesage to a conversation
         if(!input) return
         const receiverId = currentChat?.members.find(member => member._id !== user._id)
+        
         socket.current.emit("sendMessage", {
             senderId: user._id,
             receiverId,
@@ -128,12 +137,11 @@ const Chat = () => {
         })
 
         try {
-            const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
+            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
             conversationId: currentChat,
             senderId: user._id,
             text: input
         })
-        console.log(res)
         setMessages(prevMessages => [...prevMessages, res.data.data])
         }catch (e) {
             console.log(e.response)
@@ -162,7 +170,6 @@ const Chat = () => {
         })
         setChats(prevChat => [...prevChat, res.data.data])
         setChatCount(prev => prev + 1)
-        console.log(res)
         } catch (e) {
             console.log(e.response)
         }
@@ -172,38 +179,38 @@ const Chat = () => {
     const sendMessageKeyPress = async (e) => {
         //Send message with enter
         if (e.key === 'Enter' && input) {
-            const receiver = currentChat.members.find( member => member._id !== user._id )
+            const receiver = currentChat?.members.find( member => member._id !== user._id )
             const receiverId = receiver._id
-            console.log(receiverId)
             socket.current.emit("sendMessage", {
-                senderId: JSON.parse(localStorage.getItem("user"))._id,
-                receiverId,
-                text: input
-            })
+                 senderId: user._id,
+                 receiverId,
+                 text: input
+             })
             try {
                 const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
-                conversationId: currentChat,
-                senderId: user._id,
-                text: input
-            })
-            setMessages(prevMessages => [...prevMessages, {
-                conversationId: currentChat,
-                senderId: user._id,
-                text: input,
-                createdAt: new Date().toString()
-            }])
+                    conversationId: currentChat,
+                    senderId: user._id,
+                    text: input
+                })
+                setMessages(prevMessages => [...prevMessages, {
+                    conversationId: currentChat,
+                    senderId: user._id,
+                    text: input,
+                    createdAt: new Date().toString()
+                }])
             }catch (e) {
                 console.log(e.response)
             }
             setInput("")
         }
     }
-
+  
     const logOut = () => {
         setUser(null)
         socket.current?.emit('forceDisconnect')
         localStorage.clear()
         history.push('/')
+        window.location.reload()
     }
     //Template
     return (
@@ -259,49 +266,49 @@ const Chat = () => {
                     </div>
                     <div className={styles.users}>
                         {
-                            users?.map(u => (
+                             onlineUsers?.length > 1 ? onlineUsers.map(u => (
                                 //If a user is clicked, starts a conversation with them.
+                                (u.userId !== user._id) ?
                                 <div onClick={ () => {
                                         createConversation(u._id)
                                         //For responsiveness
                                         if (window.innerWidth <= 700) {
                                             setShowChat(!showChat)
                                         }
+                                        
                                     }}>
                                     <Card
-                                        id = {u._id}
-                                        name = {`${u.firstName} ${u.lastName}`}
+                                        currentUser = {u}
                                         current = {currentChat === u ? true : false}
-                                />
+                                    />
                                 </div>
-                                
+                            : null
                             ))
+                            : <p style={{alignSelf:'center', marginBottom:'1rem'}}> <em>No active users.</em> </p>
                         }
                     </div>
                 </div>
                 <div className={styles.offlines}>
                     <div className={styles.header}>
                         <div className={styles.indicator}></div>
-                        <span>Offlines</span>
+                        <span>Employees</span>
                     </div>
                     <div className={styles.users}>
                     {
                             users?.map(u => (
-                                u.status === 'Offline' ?
                                 <div onClick={ () => {
-                                    setCurrentChat(u)
+                                    createConversation(u._id)
                                     if (window.innerWidth <= 700) {
                                         setShowChat(!showChat)
                                     }
                                 }}> 
                                 <Card
                                     id = {u.id}
-                                    name = {u.name}
-                                    status = {u.status}
+                                    name = {`${u.firstName} ${u.lastName}`}
+                                    status = "no status"
                                     current = {currentChat === u ? true : false}
                                 />
                                 </div>
-                                : null
                             ))
                         }
                     </div>

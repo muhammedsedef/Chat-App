@@ -41,6 +41,7 @@ let users = []
 const addUser = (userId, socketId) => {
   !users.some(user => user.userId === userId) &&
     users.push({ userId, socketId })
+    console.log(users)
 }
 
 //To remove user who left the chat to users array
@@ -68,12 +69,27 @@ io.on("connection", (socket) => {
 
   //Send and get message
   socket.on("sendMessage", ({senderId, receiverId, text})=> {
+    console.log(receiverId)
     const user = getUser(receiverId)
-    io.to(user.socketId).emit("getMessage", {
-      senderId, 
-      text
-    })
+    try {
+      io.to(user.socketId).emit("getMessage", {
+        senderId,
+        text
+      })
+    }catch (e){
+      console.log(e)
+    }
   })
+  //Send and get group message
+     socket.on("sendGroupMessage", ({senderId, receiversIds, text})=> {
+        receiversIds.forEach(receiverId => {
+            const user = getUser(receiverId)       
+            io.to(user.socketId).emit("getMessage", {
+                      senderId,
+                      text       
+                    })     
+                  });  
+                })
 
 
   //When Disconnect someone

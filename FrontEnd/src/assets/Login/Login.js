@@ -32,7 +32,7 @@ const Login = () => {
                 history.push('/chat')
             }, 500);
         }
-    }
+        }
         catch (e){
             setError(e.response.data.message)
         }

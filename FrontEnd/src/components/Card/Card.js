@@ -4,8 +4,10 @@ import Photo from '../../images/pp.svg'
 import { AuthContext } from '../../context/AuthContext'
 import axios from 'axios'
 
-const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current = true, conversation} ) => {
+const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current = true, conversation, currentUser} ) => {
     const [user, setUser] = useContext(AuthContext)
+    const [currentUserState, setCurrentUserState] = useState()
+
     const indicator = {
         width: '10px',
         height: '10px',
@@ -20,6 +22,37 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
         cursor: 'pointer',
     }
     let friend = conversation?.members.find(m => m._id !== user._id)
+
+    const getUser = async () => {
+        try {
+            const res = await axios.get(`http://localhost:8000/api/users/getUser/${currentUser.userId}`)
+            setCurrentUserState(res.data.data)
+        }catch (e) {
+            console.log(e.response)
+        }
+
+    }
+    
+    if (currentUser) {
+        getUser();
+        return (
+            <div className={styles.cardContainer}>
+                <div style = {cardStyles} className={styles.card}>
+                    <div className={styles.photo}>
+                        <img src={photo} alt="" />
+                    </div>
+                    <div className={styles.info}>
+                        <div className={styles.top}>
+                            <div style={indicator} ></div>
+                            <span>{currentUserState?.firstName} {currentUserState?.lastName}</span>
+                        </div>
+                        <span>{status}</span>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
 
     if (conversation) {
         return (
@@ -46,10 +79,10 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
                 </div>
                 <div className={styles.info}>
                     <div className={styles.top}>
-                        <div style={indicator} ></div>
+                    { status !== "no status" ? <div style={indicator} ></div> : null}
                         <span>{name}</span>
                     </div>
-                    <span>{status}</span>
+                    { status !== "no status" ? <span>{status}</span> : null}
                 </div>
             </div>
         </div>
