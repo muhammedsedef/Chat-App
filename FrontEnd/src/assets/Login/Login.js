@@ -28,7 +28,7 @@ const Login = () => {
             localStorage.setItem('token', res.data.token)
             setMessage("You have logged in successfully.")
             setTimeout(() => {
-                //history.push('/chat')
+                history.push('/chat')
             }, 500);
         }
     }

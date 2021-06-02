@@ -8,6 +8,8 @@ import ChatHeader from '../../components/ChatHeader/ChatHeader'
 import Send from '../../images/send.svg'
 import axios from 'axios'
 import { AuthContext } from '../../context/AuthContext'
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import Loader from "react-loader-spinner";
 
 const Chat = () => {
     const [messages, setMessages] = useState([]) //Messages in chat screen
@@ -19,13 +21,10 @@ const Chat = () => {
     const [showChat, setShowChat] = useState(false) //For responsiveness
     const [chatCount, setChatCount] = useState(0)
     const scrollRef = useRef() //To scroll chat screen after sending message
-    const myChats = []
+    const [loading, setLoading] = useState(false)
 
     //Remove after auth
     const userType = "user"
-    const userID = 1
-    let id = 1
-    //
     
     useEffect(()=>{
         //Scroll to bottom
@@ -33,7 +32,7 @@ const Chat = () => {
     },[messages, currentChat])
 
     useEffect(()=>{
-        console.log(user)
+        //Get all users
         const getUsers = async () => {
             try {
                 const res = await axios.get("http://localhost:8000/api/users/getUsers")
@@ -48,6 +47,7 @@ const Chat = () => {
     },[])
 
     useEffect(()=>{
+        //Get all conversations
         const getConversations = async () => {
             try {
                 const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${JSON.parse(localStorage.getItem('user'))}`)
@@ -61,30 +61,29 @@ const Chat = () => {
         getConversations()
     },[chatCount])
 
-    useEffect(()=>{
-        console.log(messages)
-    }, [messages])
-    
     const getMessages = async (id) => {
+        setLoading(true)
+        //Get messages from a conversation
         try {
             const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
-            console.log(res.data.data)
             setMessages(res.data.data)
+            setLoading(false)
+            console.log(res.data.data)
         } catch (e) {
             console.log(e.response)
+            setLoading(false)
         }
     }
 
-    const time = new Date();
-    function addZero(i) {
+    const addZero = (i) => {
         if (i < 10) {
           i = "0" + i;
         }
         return i;
     }   
-    const hm = `${addZero(time.getHours())}:${addZero(time.getMinutes())}`
 
     const sendMessage = async () => {
+        //Send a mesage to a conversation
         if(!input) return
         try {
             const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
@@ -101,16 +100,18 @@ const Chat = () => {
     }
 
     const createConversation = async (id) => {
+        //Create a conversation with someone from user list
+
+        //Check if that conversation already exists.
         let flag = false
         chats.forEach(c => {
-            console.log(c)
             c.members.forEach( m => {
-                console.log(m)
                 if(m._id === id) {
                     flag = true
                 }
             })
         })
+        //If does not exist
         if (flag === false) {
         try {
             const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
@@ -127,6 +128,7 @@ const Chat = () => {
     }
 
     const sendMessageKeyPress = async (e) => {
+        //Send message with enter
         if (e.key === 'Enter' && input) {
             try {
                 const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
@@ -137,7 +139,8 @@ const Chat = () => {
             setMessages(prevMessages => [...prevMessages, {
                 conversationId: currentChat,
                 senderId: user,
-                text: input
+                text: input,
+                createdAt: new Date().toString()
             }])
             }catch (e) {
                 console.log(e.response)
@@ -145,10 +148,14 @@ const Chat = () => {
             setInput("")
         }
     }
-
+    //Template
     return (
         <div className={styles.chat} >
             <div className={showChat ? styles.show : styles.left}>
+                <div className="">
+                    
+                    <button>Logout</button>
+                </div>
                 <div className={styles.groups}>
                     <div className={styles.header}>
                         <div className={styles.indicator}></div>
@@ -165,11 +172,12 @@ const Chat = () => {
                     </div>
                     <div className={styles.users}>
                         {
-                            chats.length && chats.map(c => (
+                            chats.length > 0 ? chats.map(c => (
                                 <div onClick={ () => {
+                                    //If a conversation is clicked, set it as current chat, get all messages. 
                                     getMessages(c._id)
                                     setCurrentChat(c)
-                                    //getChatWithUser(u)
+                                    //For responsiveness
                                     if (window.innerWidth <= 700) {
                                         setShowChat(!showChat)
                                     }
@@ -181,6 +189,8 @@ const Chat = () => {
                                 </Card>
                                 </div>
                             ))
+                            :
+                            <p style={{alignSelf:'center', marginBottom:'1rem'}}> <em>No active chats.</em> </p>
                         }
                     </div>           
                 </div>
@@ -192,11 +202,10 @@ const Chat = () => {
                     <div className={styles.users}>
                         {
                             users?.map(u => (
-                                
+                                //If a user is clicked, starts a conversation with them.
                                 <div onClick={ () => {
-                                        console.log(typeof u._id)
                                         createConversation(u._id)
-                                        //getChatWithUser(u)
+                                        //For responsiveness
                                         if (window.innerWidth <= 700) {
                                             setShowChat(!showChat)
                                         }
@@ -266,17 +275,30 @@ const Chat = () => {
                     }
                 </div>
                 <div className={styles.messages}>
-                    {currentChat ? messages.length > 0 && messages?.map((m)=> ( 
+                    {!loading ? currentChat ? messages.length > 0 ? messages?.map((m)=> ( 
                         <div ref={scrollRef}>
                              <Message
                                 type={m.senderId._id ? m.senderId._id === user ? "sent" : "recieved" : m.senderId === user ? "sent" : "recieved"}
+                                time={addZero(new Date(m.createdAt).getHours()) + ':' + addZero(new Date(m.createdAt).getMinutes())}
                             >
                                 {m.text}
                             </Message>
                         </div>
                     ))
                     :
+                    <h3 className={styles.noMsg} >You don't have any messages with this user.</h3>
+                    :
                     <h3 className={styles.noChat} >Select someone from left to start chatting.</h3>
+                    :
+                   <div style={{textAlign:'center'}} >
+                        <Loader
+                            type="ThreeDots"
+                            color="#348C74"
+                            height={70}
+                            width={70}
+                            timeout={3000} //3 secs
+                        />
+                   </div>
                 }
                 </div>
                 {

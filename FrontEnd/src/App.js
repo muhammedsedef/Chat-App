@@ -2,18 +2,14 @@ import './App.css';
 import Login from './assets/Login/Login'
 import Register from './assets/Register/Register'
 import Logs from './assets/Logs/Logs'
-import Message from './components/Message/Message'
 import Chat from './assets/Chat/Chat'
-import Card from './components/Card/Card'
-import GroupCard from './components/GroupCard/GroupCard'
-import ChatHeader from './components/ChatHeader/ChatHeader'
 import ConversationCard from './components/ConversationCard/ConversationCard'
 
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-  Link
+  Redirect,
 } from "react-router-dom";
 
 function App() {
