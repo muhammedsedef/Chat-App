@@ -1,9 +1,10 @@
-import React, {useContext} from 'react'
+import React, {useContext, useEffect, useState} from 'react'
 import styles from './card.module.css'
 import Photo from '../../images/pp.svg'
 import { AuthContext } from '../../context/AuthContext'
+import axios from 'axios'
 
-const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current = false, conversation} ) => {
+const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current = true, conversation} ) => {
     const [user, setUser] = useContext(AuthContext)
     const indicator = {
         width: '10px',
@@ -18,8 +19,7 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
         borderColor: current ? '#CEE4DE' : '#348C74',
         cursor: 'pointer',
     }
-    let friend = conversation?.members.find(m => m._id !== user)
-
+    let friend = conversation?.members.find(m => m._id !== user._id)
 
     if (conversation) {
         return (
@@ -30,10 +30,8 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
                     </div>
                     <div className={styles.info}>
                         <div className={styles.top}>
-                            <div style={indicator} ></div>
                             <span>{friend.firstName} {friend.lastName}</span>
                         </div>
-                        <span>{status}</span>
                     </div>
                 </div>
             </div>

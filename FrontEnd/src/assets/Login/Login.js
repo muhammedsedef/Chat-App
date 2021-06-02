@@ -1,6 +1,7 @@
 import React, {useState, useContext} from 'react'
 import styles from './login.module.css'
 import LoginImage from '../../images/login-image.svg'
+import Logo from '../../images/logo.svg'
 import { Link, useHistory } from 'react-router-dom'
 import axios from 'axios'
 import { AuthContext } from '../../context/AuthContext'
@@ -23,7 +24,7 @@ const Login = () => {
         })
         console.log(res)
         if (res.status === 200) {
-            setUser(res.data.data._id)
+            setUser(res.data.data)
             setError("")
             localStorage.setItem('token', res.data.token)
             setMessage("You have logged in successfully.")
@@ -41,7 +42,8 @@ const Login = () => {
         <div className={styles.login}>
            <div className={styles.left}>
                 <div className={styles.form}>
-                    <h1>Login Chat</h1>
+                <img className={styles.logo} width="72px" src={Logo} alt="" />
+                    <h1>Login <strong style={{color:"#348C74"}} >Chatzy</strong></h1>
                     <p>Login to start chat with your coworkers</p>
                     <div className={styles.inputs}>
                         <label for="email">E-mail address</label>

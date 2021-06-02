@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import styles from './chat.module.css'
 import Message from '../../components/Message/Message'
 import Card from '../../components/Card/Card'
@@ -10,6 +10,10 @@ import axios from 'axios'
 import { AuthContext } from '../../context/AuthContext'
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
 import Loader from "react-loader-spinner";
+import LogOut from '../../images/log-out.svg'
+import Logo from '../../images/logo.svg'
+import { io } from 'socket.io-client'
+
 
 const Chat = () => {
     const [messages, setMessages] = useState([]) //Messages in chat screen
@@ -22,16 +26,44 @@ const Chat = () => {
     const [chatCount, setChatCount] = useState(0)
     const scrollRef = useRef() //To scroll chat screen after sending message
     const [loading, setLoading] = useState(false)
+    const [arrivalMessage, setArrivalMessage] = useState(null)
+    const socket = useRef()
+    const history = useHistory()
 
     //Remove after auth
-    const userType = "user"
+    const userType = user.isAdmin ? 'admin' : 'user'
+
+    useEffect(() => {
+       socket.current = io("ws://localhost:8000")
+       socket.current.on("getMessage", data => {
+           setArrivalMessage({
+               sender: data.senderId,
+               text: data.text,
+               createdAt: new Date().toString()
+           })
+       })
+    }, [])
+
+    useEffect(() => {
+        arrivalMessage && currentChat?.members.filter(m => m._id === arrivalMessage.sender).length > 0 &&
+        setMessages( prevMessages => [...prevMessages, arrivalMessage])
+        console.log(messages)
+    }, [arrivalMessage])
+
+    useEffect( ()=>{
+        socket.current.emit("addUser", user._id)
+        socket.current.on("getUsers", users => {
+            console.log(users)
+        })
+    }, [user])
     
     useEffect(()=>{
         //Scroll to bottom
         scrollRef.current?.scrollIntoView( {behavior: "smooth"} )
-    },[messages, currentChat])
+    },[messages, currentChat, loading])
 
     useEffect(()=>{
+        console.log(user)
         //Get all users
         const getUsers = async () => {
             try {
@@ -50,7 +82,7 @@ const Chat = () => {
         //Get all conversations
         const getConversations = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${JSON.parse(localStorage.getItem('user'))}`)
+                const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${user._id}`)
                 console.log(res.data.data)
                 setChats(res.data.data)
             }
@@ -59,12 +91,15 @@ const Chat = () => {
             }
         }
         getConversations()
-    },[chatCount])
+    },[chatCount, arrivalMessage])
+
+
 
     const getMessages = async (id) => {
         setLoading(true)
         //Get messages from a conversation
         try {
+            console.log(id)
             const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
@@ -85,10 +120,17 @@ const Chat = () => {
     const sendMessage = async () => {
         //Send a mesage to a conversation
         if(!input) return
+        const receiverId = currentChat?.members.find(member => member._id !== user._id)
+        socket.current.emit("sendMessage", {
+            senderId: user._id,
+            receiverId,
+            text: input
+        })
+
         try {
             const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
             conversationId: currentChat,
-            senderId: user,
+            senderId: user._id,
             text: input
         })
         console.log(res)
@@ -115,7 +157,7 @@ const Chat = () => {
         if (flag === false) {
         try {
             const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
-            senderId: user,
+            senderId: user._id,
             receiverId: id
         })
         setChats(prevChat => [...prevChat, res.data.data])
@@ -130,15 +172,23 @@ const Chat = () => {
     const sendMessageKeyPress = async (e) => {
         //Send message with enter
         if (e.key === 'Enter' && input) {
+            const receiver = currentChat.members.find( member => member._id !== user._id )
+            const receiverId = receiver._id
+            console.log(receiverId)
+            socket.current.emit("sendMessage", {
+                senderId: JSON.parse(localStorage.getItem("user"))._id,
+                receiverId,
+                text: input
+            })
             try {
                 const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
                 conversationId: currentChat,
-                senderId: user,
+                senderId: user._id,
                 text: input
             })
             setMessages(prevMessages => [...prevMessages, {
                 conversationId: currentChat,
-                senderId: user,
+                senderId: user._id,
                 text: input,
                 createdAt: new Date().toString()
             }])
@@ -148,13 +198,21 @@ const Chat = () => {
             setInput("")
         }
     }
+
+    const logOut = () => {
+        setUser(null)
+        socket.current?.emit('forceDisconnect')
+        localStorage.clear()
+        history.push('/')
+    }
     //Template
     return (
         <div className={styles.chat} >
             <div className={showChat ? styles.show : styles.left}>
-                <div className="">
-                    
-                    <button>Logout</button>
+                <div className={styles.userInformation}>
+                    <img width="48px" src={Logo} alt="" />
+                    <p>{user.firstName} {user.lastName}</p>
+                    <button onClick = {logOut} ><img src={LogOut} alt="logout"/></button>
                 </div>
                 <div className={styles.groups}>
                     <div className={styles.header}>
@@ -175,8 +233,8 @@ const Chat = () => {
                             chats.length > 0 ? chats.map(c => (
                                 <div onClick={ () => {
                                     //If a conversation is clicked, set it as current chat, get all messages. 
-                                    getMessages(c._id)
                                     setCurrentChat(c)
+                                    getMessages(c._id)
                                     //For responsiveness
                                     if (window.innerWidth <= 700) {
                                         setShowChat(!showChat)
@@ -278,7 +336,7 @@ const Chat = () => {
                     {!loading ? currentChat ? messages.length > 0 ? messages?.map((m)=> ( 
                         <div ref={scrollRef}>
                              <Message
-                                type={m.senderId._id ? m.senderId._id === user ? "sent" : "recieved" : m.senderId === user ? "sent" : "recieved"}
+                                type={m.sender ? (m.sender === user._id ? "sent" : "recieved") : m.senderId._id ? (m.senderId._id === user._id ? "sent" : "recieved") : (m.senderId === user._id ? "sent" : "recieved")}
                                 time={addZero(new Date(m.createdAt).getHours()) + ':' + addZero(new Date(m.createdAt).getMinutes())}
                             >
                                 {m.text}

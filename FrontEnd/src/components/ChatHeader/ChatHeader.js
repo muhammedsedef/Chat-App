@@ -7,7 +7,7 @@ import { AuthContext } from '../../context/AuthContext'
 
 const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, conversation} ) => {
     const [user,setUser] = useContext(AuthContext)
-    let friend = conversation?.members.find(m => m._id !== user)
+    let friend = conversation?.members.find(m => m._id !== user._id)
 
     if (conversation) {
         return (

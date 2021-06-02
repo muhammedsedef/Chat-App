@@ -3,6 +3,7 @@ import styles from '../Login/login.module.css'
 import LoginImage from '../../images/login-image.svg'
 import { Link, useHistory } from 'react-router-dom'
 import axios from 'axios'
+import Logo from '../../images/logo.svg'
 
 const Register = () => {
     const [username, setUsername] = useState("")
@@ -43,7 +44,8 @@ const Register = () => {
         <div className={styles.login}>
            <div className={styles.left}>
                 <div className={styles.form}>
-                    <h1>Join chat app now</h1>
+                <img className={styles.logo} width="72px" src={Logo} alt="" />
+                    <h1>Join <strong style={{color:"#348C74"}} >Chatzy</strong> now</h1>
                     <p>You may join now if you are already our employee</p>
                     <div className={styles.inputs}>
                         <label for="username">Username</label>
@@ -86,7 +88,7 @@ const Register = () => {
                         </div>
                     </div>
                 </div>
-                <p className={styles.bottom}>Already have an account? <Link to="/login">Log In</Link></p>
+                <p className={styles.bottom}>Already have an account? <Link to="/">Log In</Link></p>
            </div>
            <div className={styles.right}>
                 <img src={LoginImage} alt="" />

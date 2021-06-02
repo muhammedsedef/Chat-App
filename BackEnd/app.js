@@ -52,7 +52,11 @@ const getUser = (userId) => {
   return users.find(user => user.userId === userId)
 }
 
-const io = socket(server)
+const io = socket(server, {
+  cors: {
+    origin: "http://localhost:3000"
+  }
+})
 //When Connect Someone
 io.on("connection", (socket) => {
   console.log("a user connected");
@@ -78,6 +82,13 @@ io.on("connection", (socket) => {
     removeUser(socket.id)
     io.emit("getUsers", users)
   })
+
+  socket.on('forceDisconnect', () => {
+    socket.disconnect();
+    removeUser(socket.id)
+    io.emit("getUsers", users)
+});
+
 });
 
 const userRoute = require('./routes/user.route');

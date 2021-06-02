@@ -73,7 +73,7 @@ const Logs = () => {
                 </div>
                 <div className={styles.chatHeader}>
                     {userType === 'admin' ?
-                    <Link className={styles.logslink} to="/"><button className={styles2.logs}>Back</button></Link>
+                    <Link className={styles.logslink} to="/chat"><button className={styles2.logs}>Back</button></Link>
                     : null
                     }
                     {
