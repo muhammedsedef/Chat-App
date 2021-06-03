@@ -13,6 +13,8 @@ router.post('/login', UserCtrl.login);
 //GET ALL USERS
 router.get('/getUsers', UserCtrl.getUsers);
 
+router.get('/getUser/:id', UserCtrl.getUser);
+
 
 
 

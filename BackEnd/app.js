@@ -7,12 +7,29 @@ const path = require('path');
 const mongoose = require("mongoose");
 require('dotenv').config();
 
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET')
+    return res.status(200).json({});
+  };
+  next();
+});
+
 
 //Backend Server Port Config
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 server.listen(port, () => {
   console.log(`Server running on port ${port}`)
-})
+ })
 
 //SOCKET Implementation
 
@@ -22,6 +39,7 @@ let users = []
 const addUser = (userId, socketId) => {
   !users.some(user => user.userId === userId) &&
     users.push({ userId, socketId })
+    console.log(users)
 }
 
 //To remove user who left the chat to users array
@@ -33,24 +51,60 @@ const getUser = (userId) => {
   return users.find(user => user.userId === userId)
 }
 
-const io = socket(server)
+
+
+const io = socket(server, {
+  cors: {
+    origin: "http://localhost:3000"
+  }
+})
 //When Connect Someone
 io.on("connection", (socket) => {
   console.log("a user connected");
   //take userId and socketId from user
-  socket.on("addUser", userId => {
+  // socket.on("addUser", userId => {
+  //   addUser(userId, socket.id)
+  //   io.emit("getUsers", users)
+  socket.on("addUser", ({ userId, conversationId }) => {
+    socket.join(conversationId)
     addUser(userId, socket.id)
     io.emit("getUsers", users)
-  })
+    })
 
   //Send and get message
-  socket.on("sendMessage", ({senderId, receiverId, text})=> {
+  socket.on("sendMessage", ({senderId, senderName, receiverId, text})=> {
     const user = getUser(receiverId)
-    io.to(user.socketId).emit("getMessage", {
-      senderId, 
+    try {
+      io.to(user.socketId).emit("getMessage", {
+        name: senderName,
+        senderId,
+        text
+      })
+    }catch (e){
+      console.log(e)
+    }
+  })
+  
+  socket.on("sendGroupMessage", ({senderId, senderName, conversationId, text})=> {
+    socket.to(conversationId).emit("getGroupMessage", {
+      name: senderName,
+      senderId,
       text
     })
   })
+
+  
+
+    // //Send and get group message
+    //  socket.on("sendGroupMessage", ({senderId, receiversIds, text})=> {
+    //     receiversIds.forEach(receiverId => {
+    //         const user = getUser(receiverId)       
+    //         io.to(user.socketId).emit("getMessage", {
+    //                   senderId,
+    //                   text       
+    //                 })     
+    //               });  
+    //             })
 
 
   //When Disconnect someone
@@ -59,6 +113,13 @@ io.on("connection", (socket) => {
     removeUser(socket.id)
     io.emit("getUsers", users)
   })
+
+  socket.on('forceDisconnect', () => {
+    socket.disconnect();
+    removeUser(socket.id)
+    io.emit("getUsers", users)
+});
+
 });
 
 const userRoute = require('./routes/user.route');
@@ -91,13 +152,13 @@ var mongooseOptions = {
 
 //DB Config
 mongoose
-  .connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
-  .then(() => {
-    console.log("DataBase Connection Successful!");
-  })
-  .catch(err => {
-    console.log("DataBase Connection Failed!" + err);
-  });
+.connect(process.env.MONGODB_CONNECTION_STRING, mongooseOptions)
+.then(() => {
+  console.log("DataBase Connection Successful!");
+})
+.catch(err => {
+  console.log("DataBase Connection Failed!" + err);
+});
 
 
 module.exports = app;
