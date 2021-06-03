@@ -36,9 +36,9 @@ const Chat = () => {
     const history = useHistory()
     //Remove after auth
     const userType = user.isAdmin ? 'admin' : 'user'
-    
+
     useEffect(() => {
-        socket.current = io("ws://localhost:8000")
+        socket.current = io("ws://chatzy01app.herokuapp.com")
     }, [])
 
     useEffect( ()=>{
@@ -100,7 +100,7 @@ const Chat = () => {
         //Get all users
         const getUsers = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/api/users/getUsers")
+                const res = await axios.get("https://chatzy01app.herokuapp.com/api/users/getUsers")
                 setUsers(res.data.data)
             } catch (e) {
                 console.log(e.response)
@@ -114,7 +114,7 @@ const Chat = () => {
         //Get all conversations
         const getConversations = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${user._id}`)
+                const res = await axios.get(`https://chatzy01app.herokuapp.com/api/conversations/getConversation/${user._id}`)
                 setChats(res.data.data)
             }
             catch (e) {
@@ -128,7 +128,7 @@ const Chat = () => {
     useEffect(() => {
         const getGroupConversation = async () => {
             try {
-                const res = await axios.get(`http://localhost:8000/api/conversations/getConversationById/60b8c0f3a73344470cc1f807`)
+                const res = await axios.get(`https://chatzy01app.herokuapp.com/api/conversations/getConversationById/60b8c0f3a73344470cc1f807`)
                 setGroupConv(res.data.data)
             }
             catch (e) {
@@ -144,7 +144,7 @@ const Chat = () => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
+            const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
             console.log(res.data.data)
@@ -173,7 +173,7 @@ const Chat = () => {
         })
 
         try {
-            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+            const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
             conversationId: currentChat,
             senderId: user._id,
             text: input
@@ -200,7 +200,7 @@ const Chat = () => {
         //If does not exist
         if (flag === false) {
         try {
-            const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
+            const res = await axios.post("https://chatzy01app.herokuapp.com/api/conversations/newConversation", {
             senderId: user._id,
             receiverId: id
         })
@@ -224,7 +224,7 @@ const Chat = () => {
                  text: input
              })
             try {
-                const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
+                const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage/", {
                     conversationId: currentChat,
                     senderId: user._id,
                     text: input
@@ -245,7 +245,7 @@ const Chat = () => {
 
     const sendGroupMessage = async () => {
         try {
-            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+            const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
                 conversationId: "60b8c0f3a73344470cc1f807",
                 senderId: user._id,
                 text: input
@@ -272,7 +272,7 @@ const Chat = () => {
     const sendGroupMessageKeyPress = async (e) => {
         if (e.key === 'Enter' && input) {
             try {
-                const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+                const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
                     conversationId: "60b8c0f3a73344470cc1f807",
                     senderId: user._id,
                     text: input

@@ -7,7 +7,6 @@ import Card from '../../components/Card/Card'
 import GroupCard from '../../components/GroupCard/GroupCard'
 import ConversationCard from '../../components/ConversationCard/ConversationCard'
 import ChatHeader from '../../components/ChatHeader/ChatHeader'
-import { data3 } from '../../dummy/conversations'
 import Send from '../../images/send.svg'
 import axios from 'axios'
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
@@ -15,20 +14,17 @@ import Loader from "react-loader-spinner";
 
 const Logs = () => {
     const [messages, setMessages] = useState()
-    const [input, setInput] = useState("")
     const [conversations, setConversations] = useState([])
     const [currentChat, setCurrentChat] = useState()
     const [showChat, setShowChat] = useState(false)
     const [loading, setLoading] = useState(false)
     const scrollRef = useRef()
     const userType = "admin"
-    const userID = 1
-    let id = 1
-    
+
     useEffect(()=>{
         const getConversations = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/api/conversations/getAllConversations")
+                const res = await axios.get("https://chatzy01app.herokuapp.com/api/conversations/getAllConversations")
                 setConversations(res.data.data)
             }catch(e) {
                 console.log(e.response)
@@ -42,7 +38,7 @@ const Logs = () => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
+            const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
         } catch (e) {
