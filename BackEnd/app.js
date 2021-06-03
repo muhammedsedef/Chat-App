@@ -4,6 +4,8 @@ const app = express();
 const server = require('http').createServer(app);
 const path = require('path');
 
+const cors = require("cors");
+
 const mongoose = require("mongoose");
 require('dotenv').config();
 
@@ -58,6 +60,8 @@ const io = socket(server, {
     origin: "https://zen-haibt-1cbda8.netlify.app"
   }
 })
+
+app.use(cors());
 
 //When Connect Someone
 io.on("connection", (socket) => {
