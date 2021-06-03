@@ -14,20 +14,17 @@ import Loader from "react-loader-spinner";
 
 const Logs = () => {
     const [messages, setMessages] = useState()
-    const [input, setInput] = useState("")
     const [conversations, setConversations] = useState([])
     const [currentChat, setCurrentChat] = useState()
     const [showChat, setShowChat] = useState(false)
     const [loading, setLoading] = useState(false)
     const scrollRef = useRef()
     const userType = "admin"
-    const userID = 1
-    let id = 1
-    
+
     useEffect(()=>{
         const getConversations = async () => {
             try {
-                const res = await axios.get("http://localhost:8000/api/conversations/getAllConversations")
+                const res = await axios.get("https://chatzy01app.herokuapp.com/api/conversations/getAllConversations")
                 setConversations(res.data.data)
             }catch(e) {
                 console.log(e.response)
@@ -41,7 +38,7 @@ const Logs = () => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
+            const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
         } catch (e) {
