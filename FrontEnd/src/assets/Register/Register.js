@@ -20,7 +20,7 @@ const Register = () => {
 
     const signUp = async () => {
         try{
-            const res = await axios.post("http://localhost:8000/api/users/signup", {
+            const res = await axios.post("https://zen-haibt-1cbda8.netlify.app/api/users/signup", {
                 username,
                 email,
                 password,
