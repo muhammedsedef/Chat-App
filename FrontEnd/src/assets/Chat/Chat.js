@@ -37,7 +37,7 @@ const Chat = () => {
     const userType = user.isAdmin ? 'admin' : 'user'
 
     useEffect(() => {
-        socket.current = io("ws://chatzy01app.herokuapp.com")
+        socket.current = io("https://chatzy01app.herokuapp.com")
     }, [])
 
     useEffect( ()=>{

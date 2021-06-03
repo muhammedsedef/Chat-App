@@ -57,8 +57,9 @@ const io = socket(server, {
   cors: {
     origin: "https://zen-haibt-1cbda8.netlify.app"
   },
-  "rejectUnauthorized" : false
+  rejectUnauthorized : false
 })
+
 //When Connect Someone
 io.on("connection", (socket) => {
   console.log("a user connected");
