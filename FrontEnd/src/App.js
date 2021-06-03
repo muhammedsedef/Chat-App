@@ -4,6 +4,7 @@ import Register from './assets/Register/Register'
 import Logs from './assets/Logs/Logs'
 import Chat from './assets/Chat/Chat'
 import ProtectedRoute from './components/ProtectedRoute'
+import ProtectedLogs from './components/ProtectedLogs'
 import { useContext } from 'react'
 import {
   BrowserRouter as Router,
@@ -13,7 +14,7 @@ import {
 import { AuthContext } from './context/AuthContext';
 
 function App() {
-  const [user] = useContext(AuthContext)
+  const [user, setUser] = useContext(AuthContext)
 
   return (
     <div className="App">

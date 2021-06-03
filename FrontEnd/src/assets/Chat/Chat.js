@@ -31,6 +31,7 @@ const Chat = () => {
     const [arrivalMessage, setArrivalMessage] = useState(null)
     const [arrivalGroupMessage, setArrivalGroupMessage] = useState(null)
     const [groupConv, setGroupConv] = useState()
+    const [incomingName, setIncomingName] = useState()
     const socket = useRef()
     const history = useHistory()
     //Remove after auth
@@ -82,6 +83,7 @@ const Chat = () => {
     useEffect(() => {
         arrivalGroupMessage && currentChat?.members.filter(m => m._id === arrivalGroupMessage.sender).length > 0 &&
         setMessages( prevMessages => [...prevMessages, arrivalGroupMessage])
+        setIncomingName(arrivalGroupMessage?.name)
     }, [arrivalGroupMessage])
 
     useEffect(() => {
