@@ -3,6 +3,7 @@ const socket = require('socket.io');
 const app = express();
 const path = require('path');
 const port = process.env.PORT || 8000;
+const User = require('./models/User.model');
 
 const mongoose = require("mongoose");
 require('dotenv').config();
@@ -53,6 +54,8 @@ const getUser = (userId) => {
   return users.find(user => user.userId === userId)
 }
 
+
+
 const io = socket(server, {
   cors: {
     origin: "http://localhost:3000"
@@ -62,17 +65,21 @@ const io = socket(server, {
 io.on("connection", (socket) => {
   console.log("a user connected");
   //take userId and socketId from user
-  socket.on("addUser", userId => {
+  // socket.on("addUser", userId => {
+  //   addUser(userId, socket.id)
+  //   io.emit("getUsers", users)
+  socket.on("addUser", ({ userId, conversationId }) => {
+    socket.join(conversationId)
     addUser(userId, socket.id)
     io.emit("getUsers", users)
-  })
+    })
 
   //Send and get message
-  socket.on("sendMessage", ({senderId, receiverId, text})=> {
-    console.log(receiverId)
+  socket.on("sendMessage", ({senderId, senderName, receiverId, text})=> {
     const user = getUser(receiverId)
     try {
       io.to(user.socketId).emit("getMessage", {
+        name: senderName,
         senderId,
         text
       })
@@ -80,16 +87,27 @@ io.on("connection", (socket) => {
       console.log(e)
     }
   })
-  //Send and get group message
-     socket.on("sendGroupMessage", ({senderId, receiversIds, text})=> {
-        receiversIds.forEach(receiverId => {
-            const user = getUser(receiverId)       
-            io.to(user.socketId).emit("getMessage", {
-                      senderId,
-                      text       
-                    })     
-                  });  
-                })
+  
+  socket.on("sendGroupMessage", ({senderId, senderName, conversationId, text})=> {
+    socket.to(conversationId).emit("getGroupMessage", {
+      name: senderName,
+      senderId,
+      text
+    })
+  })
+
+  
+
+    // //Send and get group message
+    //  socket.on("sendGroupMessage", ({senderId, receiversIds, text})=> {
+    //     receiversIds.forEach(receiverId => {
+    //         const user = getUser(receiverId)       
+    //         io.to(user.socketId).emit("getMessage", {
+    //                   senderId,
+    //                   text       
+    //                 })     
+    //               });  
+    //             })
 
 
   //When Disconnect someone

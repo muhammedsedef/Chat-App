@@ -7,6 +7,19 @@ import axios from 'axios'
 const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current = true, conversation, currentUser} ) => {
     const [user, setUser] = useContext(AuthContext)
     const [currentUserState, setCurrentUserState] = useState()
+    
+    useEffect(() => {
+        const getUser = async () => {
+            try {
+                const res = await axios.get(`http://localhost:8000/api/users/getUser/${currentUser.userId}`)
+                setCurrentUserState(res.data.data)
+            }catch (e) {
+                console.log(e.response)
+            }
+    
+        }
+        getUser();
+    }, [])
 
     const indicator = {
         width: '10px',
@@ -23,18 +36,12 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
     }
     let friend = conversation?.members.find(m => m._id !== user._id)
 
-    const getUser = async () => {
-        try {
-            const res = await axios.get(`http://localhost:8000/api/users/getUser/${currentUser.userId}`)
-            setCurrentUserState(res.data.data)
-        }catch (e) {
-            console.log(e.response)
-        }
+  
 
-    }
+
     
     if (currentUser) {
-        getUser();
+        
         return (
             <div className={styles.cardContainer}>
                 <div style = {cardStyles} className={styles.card}>

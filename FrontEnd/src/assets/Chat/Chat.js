@@ -29,17 +29,23 @@ const Chat = () => {
     const scrollRef = useRef() //To scroll chat screen after sending message
     const [loading, setLoading] = useState(false)
     const [arrivalMessage, setArrivalMessage] = useState(null)
+    const [arrivalGroupMessage, setArrivalGroupMessage] = useState(null)
+    const [groupConv, setGroupConv] = useState()
+    const [incomingName, setIncomingName] = useState()
     const socket = useRef()
     const history = useHistory()
     //Remove after auth
-    const userType = user.isAdmin ? 'admin' : 'admin'
+    const userType = user.isAdmin ? 'admin' : 'user'
     
     useEffect(() => {
         socket.current = io("ws://localhost:8000")
     }, [])
 
     useEffect( ()=>{
-        socket.current.emit("addUser", user._id)
+        socket.current.emit("addUser",
+         {userId: user._id,
+          conversationId: "60b8c0f3a73344470cc1f807"
+        })
         socket.current.on("getUsers", users => {
             setOnlineUsers(users)
         })
@@ -48,6 +54,7 @@ const Chat = () => {
    useEffect(() => {
     socket.current.on("getMessage", data => {
         setArrivalMessage({
+            name: data.name,
             sender: data.senderId,
             text: data.text,
             createdAt: new Date().toString()
@@ -55,10 +62,33 @@ const Chat = () => {
     })
    }, [])
 
+   useEffect(() => {
+    socket.current.on("getGroupMessage", data => {
+        console.log(data)
+        setArrivalGroupMessage({
+            name: data.name,
+            sender: data.senderId,
+            text: data.text,
+            createdAt: new Date().toString(),
+        })
+    })
+   }, [])
+
     useEffect(() => {
         arrivalMessage && currentChat?.members.filter(m => m._id === arrivalMessage.sender).length > 0 &&
         setMessages( prevMessages => [...prevMessages, arrivalMessage])
+        console.log(messages)
     }, [arrivalMessage])
+
+    useEffect(() => {
+        arrivalGroupMessage && currentChat?.members.filter(m => m._id === arrivalGroupMessage.sender).length > 0 &&
+        setMessages( prevMessages => [...prevMessages, arrivalGroupMessage])
+        setIncomingName(arrivalGroupMessage?.name)
+    }, [arrivalGroupMessage])
+
+    useEffect(() => {
+        console.log(messages)
+    }, [messages])
 
     
     useEffect(()=>{
@@ -94,14 +124,19 @@ const Chat = () => {
         getConversations()
     },[chatCount, arrivalMessage])
 
-    const getSpecificUser = async (id) => {
-        try {
-            const res = axios.get(`http://localhost:8000/api/users/getUser/${id}`)
-            return res
-        } catch (error) {
-            console.log(error.response)
+
+    useEffect(() => {
+        const getGroupConversation = async () => {
+            try {
+                const res = await axios.get(`http://localhost:8000/api/conversations/getConversationById/60b8c0f3a73344470cc1f807`)
+                setGroupConv(res.data.data)
+            }
+            catch (e) {
+                console.log(e.response)
+            }
         }
-    }
+        getGroupConversation()
+    }, [])
 
 
 
@@ -112,6 +147,7 @@ const Chat = () => {
             const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
+            console.log(res.data.data)
         } catch (e) {
             console.log(e.response)
             setLoading(false)
@@ -183,6 +219,7 @@ const Chat = () => {
             const receiverId = receiver._id
             socket.current.emit("sendMessage", {
                  senderId: user._id,
+                 senderName: user.firstName,
                  receiverId,
                  text: input
              })
@@ -196,12 +233,69 @@ const Chat = () => {
                     conversationId: currentChat,
                     senderId: user._id,
                     text: input,
-                    createdAt: new Date().toString()
+                    createdAt: new Date().toString(),
+                    name: user.firstName
                 }])
             }catch (e) {
                 console.log(e.response)
             }
             setInput("")
+        }
+    }
+
+    const sendGroupMessage = async () => {
+        try {
+            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+                conversationId: "60b8c0f3a73344470cc1f807",
+                senderId: user._id,
+                text: input
+            })
+            setMessages(prevMessages => [...prevMessages, {
+                conversationId: "60b8c0f3a73344470cc1f807",
+                senderId: user._id,
+                text: input,
+                createdAt: new Date().toString()
+            }])
+            
+            socket.current.emit("sendGroupMessage", {
+                 senderName: user.firstName,
+                 senderId: user._id,
+                 conversationId: "60b8c0f3a73344470cc1f807",
+                 text: input
+             })
+      }catch (e) {
+          console.log(e.response)
+      }
+      setInput("")
+    }
+
+    const sendGroupMessageKeyPress = async (e) => {
+        if (e.key === 'Enter' && input) {
+            try {
+                const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+                    conversationId: "60b8c0f3a73344470cc1f807",
+                    senderId: user._id,
+                    text: input
+                })
+                console.log(res)
+                setMessages(prevMessages => [...prevMessages, {
+                    conversationId: "60b8c0f3a73344470cc1f807",
+                    senderId: user._id,
+                    text: input,
+                    createdAt: new Date().toString(),
+                    name: user.firstName
+                }])
+                socket.current.emit("sendGroupMessage", {
+                    senderId: user._id,
+                    senderName: user.firstName,
+                    conversationId: "60b8c0f3a73344470cc1f807",
+                    text: input
+                })
+   
+         }catch (e) {
+             console.log(e.response)
+         }
+         setInput("")
         }
     }
   
@@ -212,6 +306,10 @@ const Chat = () => {
         history.push('/')
         window.location.reload()
     }
+
+    const getFirstNameById = (id) => {
+        return users?.find(user => user.userId === id).firstName
+    } 
     //Template
     return (
         <div className={styles.chat} >
@@ -227,7 +325,21 @@ const Chat = () => {
                         <span>Groups</span>
                     </div>
                     <div className={styles.users}>
-                        <GroupCard></GroupCard>
+                        {/* //todo onclick set currentchat to group chat.
+                        //get messages from db */}
+                        <div
+                            onClick = {() => {
+                                setCurrentChat(groupConv && groupConv)
+                                getMessages(`60b8c0f3a73344470cc1f807`)
+                                if (window.innerWidth <= 700) {
+                                    setShowChat(!showChat)
+                                }
+                            }
+
+                            }
+                        >
+                            <GroupCard></GroupCard>
+                        </div>
                     </div>           
                 </div>
                 <div className={styles.conversations}>
@@ -331,23 +443,29 @@ const Chat = () => {
                     : null
                     }
                     {
-                    currentChat ?
+                    currentChat ? currentChat._id !== `60b8c0f3a73344470cc1f807` ?
                     <ChatHeader
                         conversation = {currentChat}
+                    />
+                    :
+                    <ChatHeader
+                        group = "true"
                     />
                     :
                     null
                     }
                 </div>
                 <div className={styles.messages}>
-                    {!loading ? currentChat ? messages.length > 0 ? messages?.map((m)=> ( 
+                    {!loading ? currentChat ? messages.length > 0 ? messages?.map((m)=> (
                         <div ref={scrollRef}>
                              <Message
-                                type={m.sender ? (m.sender === user._id ? "sent" : "recieved") : m.senderId._id ? (m.senderId._id === user._id ? "sent" : "recieved") : (m.senderId === user._id ? "sent" : "recieved")}
-                                time={addZero(new Date(m.createdAt).getHours()) + ':' + addZero(new Date(m.createdAt).getMinutes())}
-                            >
-                                {m.text}
-                            </Message>
+                             type={m.sender ? (m.sender === user._id ? "sent" : "recieved") : m.senderId._id ? (m.senderId._id === user._id ? "sent" : "recieved") : (m.senderId === user._id ? "sent" : "recieved")}
+                             time={addZero(new Date(m.createdAt).getHours()) + ':' + addZero(new Date(m.createdAt).getMinutes())}
+                             name = { m.name ? m.name : m.senderId?.firstName }
+                         > 
+                            {console.log(m)}
+                             {m.text}
+                         </Message>
                         </div>
                     ))
                     :
@@ -369,8 +487,8 @@ const Chat = () => {
                 {
                 currentChat ?
                 <div className={styles.input}>
-                    <input onKeyPress={sendMessageKeyPress} placeholder="Type something to send message..." type="text" value={input} onChange={e => setInput(e.target.value)}/>
-                    <button onClick={sendMessage}><img src={Send}/></button>
+                    <input onKeyPress={currentChat._id === "60b8c0f3a73344470cc1f807" ? sendGroupMessageKeyPress : sendMessageKeyPress} placeholder="Type something to send message..." type="text" value={input} onChange={e => setInput(e.target.value)}/>
+                    <button onClick={ currentChat._id === "60b8c0f3a73344470cc1f807" ? sendGroupMessage : sendMessage}><img src={Send}/></button>
                 </div>
                 : null
                 }

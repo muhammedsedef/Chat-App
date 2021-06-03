@@ -5,6 +5,7 @@ exports.newConversation = async (req, res) => {
         const members = []
         members.push(req.body.senderId)
         req.body.receivers.forEach(m => members.push(m))
+
         const newConversation = new Conversation({
             members: members
         })
@@ -28,6 +29,20 @@ exports.newConversation = async (req, res) => {
         res.status(500).json({ status: 500, message: err.message })
     }
 }
+}
+
+exports.getConversationById = async (req, res) => {
+    try {
+        let conversation = await Conversation.findById(req.params.convId).populate('members', 'firstName lastName')
+        res.status(200).json({ 
+            status: 200,
+            message : 'Success', 
+            data: conversation
+        })
+    }
+    catch (e) {
+
+    }
 }
 
 

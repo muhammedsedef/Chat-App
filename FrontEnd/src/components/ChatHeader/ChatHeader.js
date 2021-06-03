@@ -5,7 +5,7 @@ import ConversationIcon from '../../images/chat.svg'
 import { AuthContext } from '../../context/AuthContext'
 
 
-const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, conversation} ) => {
+const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, conversation, group} ) => {
     const [user,setUser] = useContext(AuthContext)
     let friend = conversation?.members.find(m => m._id !== user._id)
 
@@ -14,6 +14,15 @@ const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, 
             <div className = {styles.chatHeader}>
                 <img src={photo}/>
                 <span>{friend.firstName} {friend.lastName}</span>
+            </div>
+        )
+    }
+
+    if (group) {
+        return (
+            <div className = {styles.chatHeader}>
+                <img src={photo}/>
+                <span>Group Chat</span>
             </div>
         )
     }
@@ -35,7 +44,7 @@ const ChatHeader = ( {photo = Photo, name = "Muhammed Sedef", member1, member2, 
     return (
         <div className = {styles.chatHeader}>
             <img src={photo}/>
-            <span>{name}</span>
+            <span>Group Chat</span>
         </div>
     )
 }

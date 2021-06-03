@@ -80,12 +80,21 @@ const Logs = () => {
                                     if (window.innerWidth <= 700) {
                                         setShowChat(!showChat)
                                     }
-                                }}>
+                                }}> 
+                                { c.members?.length < 3 ?
                                     <ConversationCard
                                        member1 = {`${c.members[0].firstName} ${c.members[0].lastName}`}
                                        member2 = {`${c.members[1].firstName} ${c.members[1].lastName}`}
                                        current = {currentChat === c ? true : false}
                                     />
+                                    :
+                                    <ConversationCard
+                                       member1 = {`${c.members[0].firstName} ${c.members[0].lastName}`}
+                                       member2 = {`${c.members[1].firstName} ${c.members[1].lastName}`}
+                                       current = {currentChat === c ? true : false}
+                                       group = "true"
+                                    />
+                                }
                                 </div>
                             ))
                         }
@@ -110,9 +119,14 @@ const Logs = () => {
                     }
                     {
                     currentChat ?
+                    currentChat.members?.length < 3 ?
                     <ChatHeader
                         member1 = {currentChat?.members[0].firstName}
                         member2 = {currentChat?.members[1].firstName}
+                    />
+                    :
+                    <ChatHeader
+                        group = "true"
                     />
                     :
                     null
