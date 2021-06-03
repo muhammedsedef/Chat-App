@@ -57,7 +57,7 @@ const getUser = (userId) => {
 
 const io = socket(server, {
   cors: {
-    origin: "https://zen-haibt-1cbda8.netlify.app"
+    origin: "http://localhost:3000"
   }
 })
 
