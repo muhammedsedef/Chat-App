@@ -59,9 +59,9 @@ const getUser = (userId) => {
 
 const io = socket(server, {
   cors: {
-    origin: "https://relaxed-ramanujan-9f8842.netlify.app/"
-  },
-  "rejectUnauthorized" : false
+    origin: "https://relaxed-ramanujan-9f8842.netlify.app/",
+    credentials: true
+  }
 })
 
 
