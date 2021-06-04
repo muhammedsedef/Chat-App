@@ -60,7 +60,8 @@ const getUser = (userId) => {
 const io = socket(server, {
   cors: {
     origin: "https://relaxed-ramanujan-9f8842.netlify.app/"
-  }
+  },
+  "rejectUnauthorized" : false
 })
 
 
@@ -134,9 +135,6 @@ const messageRoute = require('./routes/message.route');
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../FrontEnd', 'index.html'));
-});
 app.get('/api', (req, res) => {
   res.send('We are on API Home');
 });
