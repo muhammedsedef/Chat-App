@@ -14,11 +14,10 @@ const Card = ( {name = "Berk Ozpinar", status = "Online", photo = Photo, current
                 if(!currentUser){
                     return
                 }
-                console.log(currentUser)
                 const res = await axios.get(`https://chatzy01app.herokuapp.com/api/users/getUser/${currentUser.userId}`)
                 setCurrentUserState(res.data.data)
             }catch (e) {
-                console.log(e)
+                console.log(e.response)
             }
     
         }

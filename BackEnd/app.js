@@ -56,10 +56,9 @@ const getUser = (userId) => {
 }
 
 
-
 const io = socket(server, {
   cors: {
-    origin: "https://relaxed-ramanujan-9f8842.netlify.app",
+    origin: "https://chatzyapp.netlify.app",
     credentials: true
   }
 })

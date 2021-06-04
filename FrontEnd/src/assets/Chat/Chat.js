@@ -41,8 +41,7 @@ const Chat = () => {
     }, [])
 
     useEffect( ()=>{
-        console.log("user emit ediyorum")
-        console.log(user._id)
+
         socket.current.emit("addUser",
          {userId: user._id,
           conversationId: "60b9443549bd1b485870a4e4"
@@ -65,7 +64,6 @@ const Chat = () => {
 
    useEffect(() => {
     socket.current.on("getGroupMessage", data => {
-        console.log(data)
         setArrivalGroupMessage({
             name: data.name,
             sender: data.senderId,
@@ -78,7 +76,6 @@ const Chat = () => {
     useEffect(() => {
         arrivalMessage && currentChat?.members.filter(m => m._id === arrivalMessage.sender).length > 0 &&
         setMessages( prevMessages => [...prevMessages, arrivalMessage])
-        console.log(messages)
     }, [arrivalMessage])
 
     useEffect(() => {
@@ -86,11 +83,6 @@ const Chat = () => {
         setMessages( prevMessages => [...prevMessages, arrivalGroupMessage])
     }, [arrivalGroupMessage])
 
-    useEffect(() => {
-        console.log(messages)
-    }, [messages])
-
-    
     useEffect(()=>{
         //Scroll to bottom
         scrollRef.current?.scrollIntoView( {behavior: "smooth"} )
@@ -116,7 +108,6 @@ const Chat = () => {
             try {
                 const res = await axios.get(`https://chatzy01app.herokuapp.com/api/conversations/getConversation/${user._id}`)
                 res.data.data = res.data.data.filter(chat => chat._id !== '60b9443549bd1b485870a4e4')//remove group chat
-                console.log(res.data.data)
                 setChats(res.data.data)
             }
             catch (e) {
@@ -149,7 +140,6 @@ const Chat = () => {
             const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
-            console.log(res.data.data)
         } catch (e) {
             console.log(e.response)
             setLoading(false)
@@ -189,7 +179,6 @@ const Chat = () => {
 
     const createConversation = async (id) => {
         //Create a conversation with someone from user list
-        console.log(id)
         //Check if that conversation already exists.
         let flag = false
         //console.log(chats)
@@ -205,8 +194,6 @@ const Chat = () => {
         chats.forEach(c => {
             c.members.forEach( m => {
                 if(m._id === id) {
-                    console.log("if icindeyim")
-                    console.log(c)
                     flag = true
                 }
             })
@@ -291,7 +278,6 @@ const Chat = () => {
                     senderId: user._id,
                     text: input
                 })
-                console.log(res)
                 setMessages(prevMessages => [...prevMessages, {
                     conversationId: "60b9443549bd1b485870a4e4",
                     senderId: user._id,
@@ -396,7 +382,6 @@ const Chat = () => {
                                 //If a user is clicked, starts a conversation with them.
                                 (u.userId !== user._id) ?
                                 <div onClick={ () => {
-                                    console.log(u.userId)
                                         createConversation(u.userId)
                                         //For responsiveness
                                         if (window.innerWidth <= 700) {
@@ -478,7 +463,6 @@ const Chat = () => {
                              time={addZero(new Date(m.createdAt).getHours()) + ':' + addZero(new Date(m.createdAt).getMinutes())}
                              name = { m.name ? m.name : m.senderId?.firstName }
                          > 
-                            {console.log(m)}
                              {m.text}
                          </Message>
                         </div>

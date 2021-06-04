@@ -22,7 +22,6 @@ const Login = () => {
             email,
             password
         })
-        console.log(res)
         if (res.status === 200) {
             setUser(res.data.data)
             setError("")
