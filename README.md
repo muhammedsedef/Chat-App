@@ -1,5 +1,22 @@
-# Chat-App
+# Chatzy-App
+In this project, we develop an app for internal communications for a company. Only the registered employees of that company are able to use this app. Admin can see whole messages between your employees. You can find the employees.json to check employees of company. If you want to use that app for your company you need to insert your data like employees.json to your Users collection. So that, your employees ready to register with using code that specified by yourself. 
+## Screenshots 
+![](/images/1.png)
 
+![](/images/2.png)
+
+![](/images/3.png)
+## For testing Users credential informations
+    email: berk@berk.com (Admin)
+    password: 123456
+
+    email: muhammed@muhammed.com
+    password: 123456
+
+    email: omar@gmail.com
+    password: 123456
+
+## For live demo : https://chatzyapp.netlify.app/
 ## Requirements
 
 For development, you will only need Node.js and a node global package, Yarn, installed in your environement.
@@ -43,9 +60,19 @@ If you need to update `npm`, you can make it using `npm`! After running the foll
 ## Install
     $ git clone https://github.com/muhammedsedef/Chat-App.git
 
+    For BackEnd:
+
     $ cd Chat-App
 
     $ cd BackEnd
+
+    $ npm install
+
+    For FrontEnd : 
+
+    $ cd Chat-App
+
+    $ cd FrontEnd
 
     $ npm install
 
@@ -56,5 +83,9 @@ If you need to update `npm`, you can make it using `npm`! After running the foll
     JWT_KEY = secret
 
 ## Running the project
-
+    Write that command for backend and frontend 
     npm start
+
+
+  
+
