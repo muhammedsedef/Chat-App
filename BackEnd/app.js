@@ -6,10 +6,12 @@ const path = require('path');
 
 const cors = require("cors");
 
+app.use(cors());
+
 const mongoose = require("mongoose");
 require('dotenv').config();
 
-app.use((req, res, next) => {
+/* app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -24,7 +26,7 @@ app.use((req, res, next) => {
     return res.status(200).json({});
   };
   next();
-});
+}); */
 
 
 //Backend Server Port Config
@@ -61,7 +63,6 @@ const io = socket(server, {
   }
 })
 
-app.use(cors());
 
 //When Connect Someone
 io.on("connection", (socket) => {
