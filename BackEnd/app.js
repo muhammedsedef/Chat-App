@@ -11,7 +11,7 @@ app.use(cors());
 const mongoose = require("mongoose");
 require('dotenv').config();
 
-/* app.use((req, res, next) => {
+app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
     "Access-Control-Allow-Headers",
@@ -26,7 +26,7 @@ require('dotenv').config();
     return res.status(200).json({});
   };
   next();
-}); */
+});
 
 
 //Backend Server Port Config
@@ -59,7 +59,7 @@ const getUser = (userId) => {
 
 const io = socket(server, {
   cors: {
-    origin: "https://relaxed-ramanujan-9f8842.netlify.app/",
+    origin: "https://relaxed-ramanujan-9f8842.netlify.app",
     credentials: true
   }
 })
