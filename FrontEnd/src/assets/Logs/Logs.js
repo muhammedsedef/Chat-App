@@ -24,7 +24,7 @@ const Logs = () => {
     useEffect(()=>{
         const getConversations = async () => {
             try {
-                const res = await axios.get("https://chatzy01app.herokuapp.com/api/conversations/getAllConversations")
+                const res = await axios.get("http://localhost:8000/api/conversations/getAllConversations")
                 setConversations(res.data.data)
             }catch(e) {
                 console.log(e.response)
@@ -38,7 +38,7 @@ const Logs = () => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
+            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
         } catch (e) {

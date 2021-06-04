@@ -71,8 +71,8 @@ io.on("connection", (socket) => {
   //   addUser(userId, socket.id)
   //   io.emit("getUsers", users)
   socket.on("addUser", ({ userId, conversationId }) => {
-    socket.join(conversationId)
     addUser(userId, socket.id)
+    socket.join(conversationId)    
     io.emit("getUsers", users)
     })
 

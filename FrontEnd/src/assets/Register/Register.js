@@ -20,7 +20,7 @@ const Register = () => {
 
     const signUp = async () => {
         try{
-            const res = await axios.post("https://chatzy01app.herokuapp.com/api/users/signup", {
+            const res = await axios.post("http://localhost:8000/api/users/signup", {
                 username,
                 email,
                 password,

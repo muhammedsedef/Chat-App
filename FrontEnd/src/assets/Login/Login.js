@@ -18,7 +18,7 @@ const Login = () => {
     const logIn = async () => {
         if( !email && !password ) return
         try {
-            const res = await axios.post("https://chatzy01app.herokuapp.com/api/users/login", {
+            const res = await axios.post("http://localhost:8000/api/users/login", {
             email,
             password
         })

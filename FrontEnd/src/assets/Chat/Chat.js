@@ -21,7 +21,7 @@ const Chat = () => {
     const [input, setInput] = useState("") //Message input
     const [users, setUsers] = useState() //Users on the left frame
     const [onlineUsers, setOnlineUsers] = useState() //Users on the left frame
-    const [chats, setChats] = useState([])
+    var [chats, setChats] = useState([])
     const [user, setUser] = useContext(AuthContext)
     const [currentChat, setCurrentChat] = useState() //Current chat indicator
     const [showChat, setShowChat] = useState(false) //For responsiveness
@@ -31,20 +31,21 @@ const Chat = () => {
     const [arrivalMessage, setArrivalMessage] = useState(null)
     const [arrivalGroupMessage, setArrivalGroupMessage] = useState(null)
     const [groupConv, setGroupConv] = useState()
-    const [incomingName, setIncomingName] = useState()
     const socket = useRef()
     const history = useHistory()
     //Remove after auth
     const userType = user.isAdmin ? 'admin' : 'user'
 
     useEffect(() => {
-        socket.current = io("https://chatzy01app.herokuapp.com")
+        socket.current = io("ws://localhost:8000")
     }, [])
 
     useEffect( ()=>{
+        console.log("user emit ediyorum")
+        console.log(user._id)
         socket.current.emit("addUser",
          {userId: user._id,
-          conversationId: "60b8c0f3a73344470cc1f807"
+          conversationId: "60b9443549bd1b485870a4e4"
         })
         socket.current.on("getUsers", users => {
             setOnlineUsers(users)
@@ -83,7 +84,6 @@ const Chat = () => {
     useEffect(() => {
         arrivalGroupMessage && currentChat?.members.filter(m => m._id === arrivalGroupMessage.sender).length > 0 &&
         setMessages( prevMessages => [...prevMessages, arrivalGroupMessage])
-        setIncomingName(arrivalGroupMessage?.name)
     }, [arrivalGroupMessage])
 
     useEffect(() => {
@@ -100,7 +100,7 @@ const Chat = () => {
         //Get all users
         const getUsers = async () => {
             try {
-                const res = await axios.get("https://chatzy01app.herokuapp.com/api/users/getUsers")
+                const res = await axios.get("http://localhost:8000/api/users/getUsers")
                 setUsers(res.data.data)
             } catch (e) {
                 console.log(e.response)
@@ -114,7 +114,9 @@ const Chat = () => {
         //Get all conversations
         const getConversations = async () => {
             try {
-                const res = await axios.get(`https://chatzy01app.herokuapp.com/api/conversations/getConversation/${user._id}`)
+                const res = await axios.get(`http://localhost:8000/api/conversations/getConversation/${user._id}`)
+                res.data.data = res.data.data.filter(chat => chat._id !== '60b9443549bd1b485870a4e4')//remove group chat
+                console.log(res.data.data)
                 setChats(res.data.data)
             }
             catch (e) {
@@ -128,7 +130,7 @@ const Chat = () => {
     useEffect(() => {
         const getGroupConversation = async () => {
             try {
-                const res = await axios.get(`https://chatzy01app.herokuapp.com/api/conversations/getConversationById/60b8c0f3a73344470cc1f807`)
+                const res = await axios.get(`http://localhost:8000/api/conversations/getConversationById/60b9443549bd1b485870a4e4`)
                 setGroupConv(res.data.data)
             }
             catch (e) {
@@ -144,7 +146,7 @@ const Chat = () => {
         setLoading(true)
         //Get messages from a conversation
         try {
-            const res = await axios.get(`https://chatzy01app.herokuapp.com/api/messages/getMessages/${id}`)
+            const res = await axios.get(`http://localhost:8000/api/messages/getMessages/${id}`)
             setMessages(res.data.data)
             setLoading(false)
             console.log(res.data.data)
@@ -173,7 +175,7 @@ const Chat = () => {
         })
 
         try {
-            const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
+            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
             conversationId: currentChat,
             senderId: user._id,
             text: input
@@ -187,12 +189,24 @@ const Chat = () => {
 
     const createConversation = async (id) => {
         //Create a conversation with someone from user list
-
+        console.log(id)
         //Check if that conversation already exists.
         let flag = false
+        //console.log(chats)
+        /* chats[0].members.forEach(c => {
+            console.log(c)
+            if(c._id === id){
+                console.log("if icindeyim")
+                flag = true
+            }
+        }) */
+        
+        chats = chats.filter(chat => chat._id !== '60b9443549bd1b485870a4e4')//remove group chat 
         chats.forEach(c => {
             c.members.forEach( m => {
                 if(m._id === id) {
+                    console.log("if icindeyim")
+                    console.log(c)
                     flag = true
                 }
             })
@@ -200,7 +214,7 @@ const Chat = () => {
         //If does not exist
         if (flag === false) {
         try {
-            const res = await axios.post("https://chatzy01app.herokuapp.com/api/conversations/newConversation", {
+            const res = await axios.post("http://localhost:8000/api/conversations/newConversation", {
             senderId: user._id,
             receiverId: id
         })
@@ -224,7 +238,7 @@ const Chat = () => {
                  text: input
              })
             try {
-                const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage/", {
+                const res = await axios.post("http://localhost:8000/api/messages/newMessage/", {
                     conversationId: currentChat,
                     senderId: user._id,
                     text: input
@@ -245,13 +259,13 @@ const Chat = () => {
 
     const sendGroupMessage = async () => {
         try {
-            const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
-                conversationId: "60b8c0f3a73344470cc1f807",
+            const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+                conversationId: "60b9443549bd1b485870a4e4",
                 senderId: user._id,
                 text: input
             })
             setMessages(prevMessages => [...prevMessages, {
-                conversationId: "60b8c0f3a73344470cc1f807",
+                conversationId: "60b9443549bd1b485870a4e4",
                 senderId: user._id,
                 text: input,
                 createdAt: new Date().toString()
@@ -260,7 +274,7 @@ const Chat = () => {
             socket.current.emit("sendGroupMessage", {
                  senderName: user.firstName,
                  senderId: user._id,
-                 conversationId: "60b8c0f3a73344470cc1f807",
+                 conversationId: "60b9443549bd1b485870a4e4",
                  text: input
              })
       }catch (e) {
@@ -272,14 +286,14 @@ const Chat = () => {
     const sendGroupMessageKeyPress = async (e) => {
         if (e.key === 'Enter' && input) {
             try {
-                const res = await axios.post("https://chatzy01app.herokuapp.com/api/messages/newMessage", {
-                    conversationId: "60b8c0f3a73344470cc1f807",
+                const res = await axios.post("http://localhost:8000/api/messages/newMessage", {
+                    conversationId: "60b9443549bd1b485870a4e4",
                     senderId: user._id,
                     text: input
                 })
                 console.log(res)
                 setMessages(prevMessages => [...prevMessages, {
-                    conversationId: "60b8c0f3a73344470cc1f807",
+                    conversationId: "60b9443549bd1b485870a4e4",
                     senderId: user._id,
                     text: input,
                     createdAt: new Date().toString(),
@@ -288,7 +302,7 @@ const Chat = () => {
                 socket.current.emit("sendGroupMessage", {
                     senderId: user._id,
                     senderName: user.firstName,
-                    conversationId: "60b8c0f3a73344470cc1f807",
+                    conversationId: "60b9443549bd1b485870a4e4",
                     text: input
                 })
    
@@ -330,7 +344,7 @@ const Chat = () => {
                         <div
                             onClick = {() => {
                                 setCurrentChat(groupConv && groupConv)
-                                getMessages(`60b8c0f3a73344470cc1f807`)
+                                getMessages(`60b9443549bd1b485870a4e4`)
                                 if (window.innerWidth <= 700) {
                                     setShowChat(!showChat)
                                 }
@@ -382,7 +396,8 @@ const Chat = () => {
                                 //If a user is clicked, starts a conversation with them.
                                 (u.userId !== user._id) ?
                                 <div onClick={ () => {
-                                        createConversation(u._id)
+                                    console.log(u.userId)
+                                        createConversation(u.userId)
                                         //For responsiveness
                                         if (window.innerWidth <= 700) {
                                             setShowChat(!showChat)
@@ -443,7 +458,7 @@ const Chat = () => {
                     : null
                     }
                     {
-                    currentChat ? currentChat._id !== `60b8c0f3a73344470cc1f807` ?
+                    currentChat ? currentChat._id !== `60b9443549bd1b485870a4e4` ?
                     <ChatHeader
                         conversation = {currentChat}
                     />
@@ -487,8 +502,8 @@ const Chat = () => {
                 {
                 currentChat ?
                 <div className={styles.input}>
-                    <input onKeyPress={currentChat._id === "60b8c0f3a73344470cc1f807" ? sendGroupMessageKeyPress : sendMessageKeyPress} placeholder="Type something to send message..." type="text" value={input} onChange={e => setInput(e.target.value)}/>
-                    <button onClick={ currentChat._id === "60b8c0f3a73344470cc1f807" ? sendGroupMessage : sendMessage}><img src={Send}/></button>
+                    <input onKeyPress={currentChat._id === "60b9443549bd1b485870a4e4" ? sendGroupMessageKeyPress : sendMessageKeyPress} placeholder="Type something to send message..." type="text" value={input} onChange={e => setInput(e.target.value)}/>
+                    <button onClick={ currentChat._id === "60b9443549bd1b485870a4e4" ? sendGroupMessage : sendMessage}><img src={Send}/></button>
                 </div>
                 : null
                 }
