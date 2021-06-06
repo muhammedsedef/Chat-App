@@ -81,6 +81,7 @@ If you need to update `npm`, you can make it using `npm`! After running the foll
     Create a .env file in the BackEnd folder and and inject your credentials so it looks like this : 
     MONGODB_CONNECTION_STRING = <CONNECTION_STRING>
     JWT_KEY = secret
+    AES_KEY = mysecretkey
 
 ## Running the project
     Write that command for backend and frontend 
